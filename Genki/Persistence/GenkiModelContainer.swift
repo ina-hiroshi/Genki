@@ -38,7 +38,9 @@ enum GenkiModelContainer {
     }
 
     private static func persistentStoreURL() -> URL {
-        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        guard let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            return URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("Genki.store")
+        }
         return base.appendingPathComponent("Genki.store")
     }
 

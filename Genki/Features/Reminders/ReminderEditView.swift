@@ -41,6 +41,11 @@ struct ReminderEditView: View {
             }
             .genkiListStyle()
             .navigationTitle("リマインド")
+            .onAppear {
+                if ownerID == nil {
+                    ownerID = FamilyActions.currentMember(in: context)?.id
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("キャンセル") { dismiss() }

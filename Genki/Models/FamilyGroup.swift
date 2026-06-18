@@ -9,8 +9,10 @@ final class FamilyGroup {
     var name: String = "わたしの家族"
     var createdAt: Date = Date.now
 
-    /// CloudKit 共有ゾーンのレコード名（共有時に紐付け）。
+    /// CloudKit 共有ゾーンのルートレコード名。
     var shareRecordName: String?
+    /// 共有ゾーンのオーナー（参加者端末で sharedDB 読み書きに必要）。
+    var cloudKitRootZoneOwnerName: String?
 
     @Relationship(deleteRule: .cascade, inverse: \Member.family)
     var members: [Member]? = []

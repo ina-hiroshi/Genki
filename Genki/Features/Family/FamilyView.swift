@@ -7,6 +7,7 @@ struct FamilyView: View {
     @Query private var families: [FamilyGroup]
     @State private var isPreparingShare = false
     @State private var shareError: String?
+    @State private var sharePresentation: SharePresentation?
     @State private var showDeleteConfirmation = false
 
     private var family: FamilyGroup? { families.first }
@@ -38,7 +39,7 @@ struct FamilyView: View {
                     } label: {
                         Label("共有リンクを送る", systemImage: "square.and.arrow.up")
                     }
-                    .disabled(isPreparingShare)
+                    .disabled(isPreparingShare || family == nil)
                     if let shareError {
                         Text(shareError).font(GenkiFont.caption()).foregroundStyle(GenkiPalette.sos)
                     }
@@ -69,6 +70,11 @@ struct FamilyView: View {
             .genkiListStyle()
             .genkiScreenBackground()
             .navigationTitle(family?.name ?? "家族")
+            .sheet(item: $sharePresentation) { presentation in
+                CloudSharingSheet(share: presentation.share, container: presentation.container) {
+                    sharePresentation = nil
+                }
+            }
             .confirmationDialog(
                 "すべてのデータを削除しますか？",
                 isPresented: $showDeleteConfirmation,
@@ -85,7 +91,7 @@ struct FamilyView: View {
     private func inviteFamily() {
         guard let family else { return }
         guard FeatureFlags.cloudKitEnabled else {
-            shareError = "共有（招待リンク）は、iCloudを設定した実機の署名ビルドで利用できます。"
+            shareError = "共有（招待リンク）は、iCloudを設定した実機で利用できます。"
             return
         }
         isPreparingShare = true
@@ -93,12 +99,11 @@ struct FamilyView: View {
         Task {
             do {
                 let controller = ShareController()
-                _ = try await controller.makeShare(for: family)
+                let (share, container) = try await controller.prepareShare(for: family)
                 try? context.save()
-                // 実機では UICloudSharingController を提示してリンク/メッセージで共有する。
-                shareError = "共有リンクを準備しました（実機のiCloud設定で送信できます）。"
+                sharePresentation = SharePresentation(share: share, container: container)
             } catch {
-                shareError = "共有の準備に失敗しました: \(error.localizedDescription)"
+                shareError = "共有の準備に失敗しました: \(GenkiCloudError.friendlyMessage(for: error))"
             }
             isPreparingShare = false
         }

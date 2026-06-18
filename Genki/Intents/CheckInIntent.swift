@@ -26,6 +26,7 @@ struct CheckInIntent: AppIntent {
         }
 
         FamilyActions.checkIn(member: me, in: context, fromAlarm: true)
+        NotificationManager.shared.notifyCheckIn(memberName: me.name)
         return .result(dialog: "おはようございます。家族に「元気だよ」を送りました。")
     }
 }

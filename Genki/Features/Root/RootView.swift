@@ -7,7 +7,9 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            if families.isEmpty {
+            if ShareAcceptanceStore.hasPendingJoin {
+                JoinOnboardingView()
+            } else if families.isEmpty {
                 OnboardingView()
             } else {
                 MainTabView()

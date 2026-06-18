@@ -38,7 +38,7 @@ struct Provider: TimelineProvider {
     }
 
     private func load() -> FamilySnapshot {
-        GenkiSharedStore().load() ?? .placeholder
+        GenkiSharedStore().load() ?? .empty
     }
 }
 

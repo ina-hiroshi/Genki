@@ -26,6 +26,7 @@ enum AccountActions {
         NotificationManager.shared.removeAllScheduledNotifications()
         GenkiSharedStore().save(.empty)
         clearAppGroupPreferences()
+        ShareAcceptanceStore.clear()
         CurrentUser.reset()
     }
 

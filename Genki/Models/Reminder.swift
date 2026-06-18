@@ -59,6 +59,6 @@ final class Reminder {
         if let oneTimeDate {
             return calendar.isDate(oneTimeDate, inSameDayAs: day)
         }
-        return true
+        return false
     }
 }

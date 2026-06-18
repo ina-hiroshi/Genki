@@ -115,7 +115,7 @@ final class NotificationManager {
         let content = UNMutableNotificationContent()
         content.title = "🆘 \(fromMemberName)からのSOS"
         content.body = "今すぐ連絡してください"
-        content.sound = .defaultCritical
+        content.sound = .default
         content.interruptionLevel = .timeSensitive
         content.threadIdentifier = "sos"
         deliverNow(content)

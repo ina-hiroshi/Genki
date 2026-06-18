@@ -33,6 +33,11 @@ enum FamilyActions {
         context.insert(checkIn)
         try? context.save()
         rebuildSnapshot(in: context)
+        if let family = member.family {
+            Task {
+                await CloudKitEventWriter.publishCheckIn(memberName: member.name, family: family)
+            }
+        }
         return checkIn
     }
 
@@ -46,6 +51,15 @@ enum FamilyActions {
         try? context.save()
         NotificationManager.shared.notifyCompletion(memberName: member.name, reminderTitle: reminder.title)
         rebuildSnapshot(in: context)
+        if let family = reminder.family ?? member.family {
+            Task {
+                await CloudKitEventWriter.publishCompletion(
+                    memberName: member.name,
+                    reminderTitle: reminder.title,
+                    family: family
+                )
+            }
+        }
         return log
     }
 
@@ -74,6 +88,9 @@ enum FamilyActions {
                             family: FamilyGroup?,
                             in context: ModelContext) {
         let reminder = Reminder(title: title, symbolName: symbolName, hour: hour, minute: minute, weekdays: weekdays)
+        if weekdays.isEmpty {
+            reminder.oneTimeDate = Calendar.current.startOfDay(for: .now)
+        }
         reminder.owner = owner
         reminder.family = family
         context.insert(reminder)

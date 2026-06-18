@@ -7,7 +7,11 @@ import UserNotifications
 struct GenkiApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
-    private let container = GenkiModelContainer.makeShared()
+    let container = GenkiModelContainer.makeShared()
+
+    init() {
+        appDelegate.modelContainer = container
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -51,6 +55,8 @@ struct GenkiApp: App {
 
 /// プッシュ通知と CloudKit 共有受諾を扱う AppDelegate。
 final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    var modelContainer: ModelContainer?
+
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         UNUserNotificationCenter.current().delegate = self
@@ -62,17 +68,25 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     func application(_ application: UIApplication,
                      didReceiveRemoteNotification userInfo: [AnyHashable: Any],
                      fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        // CKDatabaseSubscription からのサイレントプッシュ。
-        // 実機では差分フェッチ→ローカルへ反映→必要なら可視通知に変換する。
-        completionHandler(.newData)
+        Task { @MainActor in
+            if let context = modelContainer?.mainContext {
+                await CloudKitEventWriter.handleRemoteChange(in: context)
+            }
+            completionHandler(.newData)
+        }
     }
 
     // MARK: - CloudKit 共有の受諾（招待リンクを開いたとき）
 
     func application(_ application: UIApplication,
                      userDidAcceptCloudKitShareWith cloudKitShareMetadata: CKShare.Metadata) {
-        Task {
-            try? await ShareController().accept(cloudKitShareMetadata)
+        Task { @MainActor in
+            do {
+                try await ShareController().accept(cloudKitShareMetadata)
+            } catch {
+                // 受諾失敗は次回起動時に再試行できるよう、ログのみ
+                NSLog("Genki share accept error: \(error.localizedDescription)")
+            }
         }
     }
 
