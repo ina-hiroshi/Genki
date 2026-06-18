@@ -14,6 +14,7 @@ struct OnboardingView: View {
             ScrollView {
                 VStack(spacing: 28) {
                     header
+                    OnboardingHowItWorks()
 
                     VStack(alignment: .leading, spacing: 20) {
                         field(title: "家族の名前") {
@@ -35,6 +36,11 @@ struct OnboardingView: View {
                         .disabled(myName.trimmingCharacters(in: .whitespaces).isEmpty)
 
                     Text("家族の招待は、作成後に「家族」タブの共有リンクから送れます。")
+                        .font(GenkiFont.caption())
+                        .foregroundStyle(GenkiPalette.muted)
+                        .multilineTextAlignment(.center)
+
+                    Text("データの削除は、いつでも「家族」タブから行えます。")
                         .font(GenkiFont.caption())
                         .foregroundStyle(GenkiPalette.muted)
                         .multilineTextAlignment(.center)

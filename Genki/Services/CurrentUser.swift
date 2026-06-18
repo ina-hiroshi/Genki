@@ -28,4 +28,11 @@ enum CurrentUser {
         get { defaults.bool(forKey: onboardedKey) }
         set { defaults.set(newValue, forKey: onboardedKey) }
     }
+
+    /// データ削除後に呼び、オンボーディング画面へ戻す。
+    static func reset() {
+        myMemberID = nil
+        myName = ""
+        isOnboarded = false
+    }
 }

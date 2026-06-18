@@ -70,6 +70,11 @@ final class NotificationManager {
         center.removePendingNotificationRequests(withIdentifiers: ids)
     }
 
+    /// 予約済みのローカル通知をすべて取り消す（データ削除時）。
+    func removeAllScheduledNotifications() {
+        center.removeAllPendingNotificationRequests()
+    }
+
     // MARK: - 家族への通知（受信側でローカル化）
 
     /// 「○○が△△を完了しました」を可視通知として表示する。

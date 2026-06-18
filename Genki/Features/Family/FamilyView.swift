@@ -7,6 +7,7 @@ struct FamilyView: View {
     @Query private var families: [FamilyGroup]
     @State private var isPreparingShare = false
     @State private var shareError: String?
+    @State private var showDeleteConfirmation = false
 
     private var family: FamilyGroup? { families.first }
 
@@ -52,10 +53,32 @@ struct FamilyView: View {
                     Label("位置情報は使いません。履歴はずっと無料で見られます。", systemImage: "checkmark.seal")
                         .font(GenkiFont.caption())
                 }
+
+                Section("データとアカウント") {
+                    Text("Genkiにメールアドレス等のアカウント登録はありません。家族グループ・履歴は端末とiCloud（共有時）に保存されます。")
+                        .font(GenkiFont.caption())
+                        .foregroundStyle(GenkiPalette.muted)
+
+                    Button(role: .destructive) {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Label("すべてのデータを削除", systemImage: "trash")
+                    }
+                }
             }
             .genkiListStyle()
             .genkiScreenBackground()
             .navigationTitle(family?.name ?? "家族")
+            .confirmationDialog(
+                "すべてのデータを削除しますか？",
+                isPresented: $showDeleteConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("削除する", role: .destructive, action: deleteAllData)
+                Button("キャンセル", role: .cancel) {}
+            } message: {
+                Text("家族グループ・リマインド・チェックイン・履歴がこの端末から削除され、最初の画面に戻ります。iCloud共有中のデータは、設定アプリのiCloudからも削除できます。")
+            }
         }
     }
 
@@ -79,6 +102,10 @@ struct FamilyView: View {
             }
             isPreparingShare = false
         }
+    }
+
+    private func deleteAllData() {
+        AccountActions.deleteAllUserData(in: context)
     }
 }
 
