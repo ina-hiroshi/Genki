@@ -18,7 +18,7 @@ final class ShareController {
         try await manager.ensureCustomZone()
 
         let rootRecordName = family.id.uuidString
-        logger.info("prepareShare start root=\(rootRecordName, privacy: .public) container=\(GenkiConstants.iCloudContainerID, privacy: .public)")
+        logger.info("prepareShare start root=\(rootRecordName, privacy: .public)")
 
         if let stored = family.shareRecordName, stored != rootRecordName {
             family.shareRecordName = nil
@@ -33,43 +33,31 @@ final class ShareController {
         try await manager.deleteBrokenRootShare(forRootRecordName: rootRecordName)
 
         let rootID = CKRecord.ID(recordName: rootRecordName, zoneID: manager.zoneID)
-        let serverRoot = try await upsertRootRecord(id: rootID, name: family.name)
+        let rootIsNew = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) == nil
 
-        if let existing = await manager.fetchShareIfExists(forRootRecordName: rootRecordName) {
-            logger.info("prepareShare share appeared after root upsert")
-            stampShareMetadata(on: family, rootRecordName: rootRecordName)
-            return (existing, manager.container)
-        }
-
-        let share = makeShare(for: family, root: serverRoot)
-        let saved = try await manager.saveRecords([share],
-                                                  in: manager.privateDB,
-                                                  savePolicy: .allKeys)
-        logger.info("prepareShare saved share count=\(saved.count)")
-        return try await resolveShare(from: saved, share: share, rootRecordName: rootRecordName, family: family)
-    }
-
-    /// 1) root をサーバーに保存 → 2) 最新 root を取得、という Apple 推奨フロー。
-    private func upsertRootRecord(id rootID: CKRecord.ID, name: String) async throws -> CKRecord {
-        if let existing = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) {
-            logger.info("prepareShare update existing root")
-            existing["name"] = name as CKRecordValue
-            _ = try await manager.saveRecords([existing],
-                                              in: manager.privateDB,
-                                              savePolicy: .changedKeys)
+        let root: CKRecord
+        if rootIsNew {
+            logger.info("prepareShare create new root+share atomically")
+            root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
         } else {
-            logger.info("prepareShare create root on server")
-            let root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
-            root["name"] = name as CKRecordValue
-            _ = try await manager.saveRecords([root],
-                                              in: manager.privateDB,
-                                              savePolicy: .allKeys)
+            logger.info("prepareShare attach new share to existing root atomically")
+            guard let existing = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) else {
+                throw GenkiCloudError.shareNotFound
+            }
+            root = existing
         }
+        root["name"] = family.name as CKRecordValue
 
-        guard let serverRoot = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) else {
-            throw GenkiCloudError.shareNotFound
-        }
-        return serverRoot
+        let share = makeShare(for: family, root: root)
+
+        // 新規 share は root と同一 CKModifyRecordsOperation で保存する必要がある（CKError 12 回避）。
+        let savePolicy: CKModifyRecordsOperation.RecordSavePolicy = rootIsNew ? .allKeys : .changedKeys
+        let saved = try await manager.saveRecords([root, share],
+                                                  in: manager.privateDB,
+                                                  savePolicy: savePolicy)
+        logger.info("prepareShare saved root+share atomically count=\(saved.count)")
+
+        return try await resolveShare(from: saved, share: share, rootRecordName: rootRecordName, family: family)
     }
 
     private func makeShare(for family: FamilyGroup, root: CKRecord) -> CKShare {
