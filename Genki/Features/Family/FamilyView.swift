@@ -5,9 +5,8 @@ import SwiftData
 struct FamilyView: View {
     @Environment(\.modelContext) private var context
     @Query private var families: [FamilyGroup]
-    @State private var isPreparingShare = false
     @State private var shareError: String?
-    @State private var sharePresentation: SharePresentation?
+    @State private var showShareSheet = false
     @State private var showDeleteConfirmation = false
 
     private var family: FamilyGroup? { families.first }
@@ -39,7 +38,7 @@ struct FamilyView: View {
                     } label: {
                         Label("共有リンクを送る", systemImage: "square.and.arrow.up")
                     }
-                    .disabled(isPreparingShare || family == nil)
+                    .disabled(family == nil)
                     if let shareError {
                         Text(shareError).font(GenkiFont.caption()).foregroundStyle(GenkiPalette.sos)
                     }
@@ -70,9 +69,15 @@ struct FamilyView: View {
             .genkiListStyle()
             .genkiScreenBackground()
             .navigationTitle(family?.name ?? "家族")
-            .sheet(item: $sharePresentation) { presentation in
-                CloudSharingSheet(share: presentation.share, container: presentation.container) {
-                    sharePresentation = nil
+            .sheet(isPresented: $showShareSheet) {
+                if let family {
+                    CloudSharingSheet(
+                        family: family,
+                        onSaved: { try? context.save() },
+                        onError: { shareError = "共有の準備に失敗しました: \($0)" },
+                        onDismiss: { showShareSheet = false }
+                    )
+                    .ignoresSafeArea()
                 }
             }
             .confirmationDialog(
@@ -89,24 +94,13 @@ struct FamilyView: View {
     }
 
     private func inviteFamily() {
-        guard let family else { return }
+        guard family != nil else { return }
         guard FeatureFlags.cloudKitEnabled else {
             shareError = "共有（招待リンク）は、iCloudを設定した実機で利用できます。"
             return
         }
-        isPreparingShare = true
         shareError = nil
-        Task {
-            do {
-                let controller = ShareController()
-                let (share, container) = try await controller.prepareShare(for: family)
-                try? context.save()
-                sharePresentation = SharePresentation(share: share, container: container)
-            } catch {
-                shareError = "共有の準備に失敗しました: \(GenkiCloudError.friendlyMessage(for: error))"
-            }
-            isPreparingShare = false
-        }
+        showShareSheet = true
     }
 
     private func deleteAllData() {

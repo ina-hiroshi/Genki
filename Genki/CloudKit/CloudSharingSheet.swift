@@ -2,14 +2,28 @@ import CloudKit
 import SwiftUI
 import UIKit
 
-/// CloudKit 共有リンクを Messages 等で送るための UI。
+/// CloudKit 共有リンクを Messages 等で送るための UI（Apple 推奨の preparationHandler 方式）。
 struct CloudSharingSheet: UIViewControllerRepresentable {
-    let share: CKShare
-    let container: CKContainer
+    let family: FamilyGroup
+    var onSaved: () -> Void
+    var onError: (String) -> Void
     var onDismiss: () -> Void
 
     func makeUIViewController(context: Context) -> UICloudSharingController {
-        let controller = UICloudSharingController(share: share, container: container)
+        let controller = UICloudSharingController { _, completionHandler in
+            Task {
+                do {
+                    let shareController = ShareController()
+                    let (share, container) = try await shareController.prepareShare(for: family)
+                    await MainActor.run { onSaved() }
+                    completionHandler(share, container, nil)
+                } catch {
+                    let message = GenkiCloudError.friendlyMessage(for: error)
+                    await MainActor.run { onError(message) }
+                    completionHandler(nil, nil, error)
+                }
+            }
+        }
         controller.delegate = context.coordinator
         controller.availablePermissions = [.allowReadWrite, .allowPrivate]
         return controller
@@ -36,6 +50,10 @@ struct CloudSharingSheet: UIViewControllerRepresentable {
             "Genki 家族グループ"
         }
 
+        func itemThumbnailData(for csc: UICloudSharingController) -> Data? {
+            nil
+        }
+
         func cloudSharingControllerDidSaveShare(_ csc: UICloudSharingController) {
             onDismiss()
         }
@@ -44,10 +62,4 @@ struct CloudSharingSheet: UIViewControllerRepresentable {
             onDismiss()
         }
     }
-}
-
-struct SharePresentation: Identifiable {
-    let id = UUID()
-    let share: CKShare
-    let container: CKContainer
 }

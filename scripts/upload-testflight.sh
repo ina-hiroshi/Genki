@@ -24,6 +24,13 @@ fi
 echo "→ Xcode プロジェクト生成"
 xcodegen generate
 
+echo "→ CloudKit スキーマ（管理トークンがある場合のみ）"
+if ./scripts/deploy-cloudkit-schema.sh 2>/dev/null; then
+  echo "   CloudKit スキーマデプロイ完了"
+else
+  echo "   スキップ: CloudKit 管理トークン未設定（Dashboard から手動デプロイが必要な場合あり）"
+fi
+
 echo "→ Archive（Release / iOS）"
 rm -rf build/Genki.xcarchive build/export
 xcodebuild archive \

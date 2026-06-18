@@ -31,8 +31,13 @@ enum GenkiCloudError: LocalizedError {
                 break
             }
         }
-        if ns.localizedDescription.contains("Did not find record type") {
-            return GenkiCloudError.schemaNotDeployed("開発者がCloudKit DashboardでレコードタイプをProduction環境にデプロイする必要があります。").localizedDescription
+        if ns.localizedDescription.contains("Did not find record type")
+            || ns.localizedDescription.contains("Cannot create new type") {
+            return """
+            CloudKitのスキーマがProduction環境に未デプロイです。\
+            開発者が CloudKit Dashboard または scripts/deploy-cloudkit-schema.sh で \
+            FamilyGroup / CheckIn / CompletionLog をデプロイしてください。
+            """
         }
         return ns.localizedDescription
     }

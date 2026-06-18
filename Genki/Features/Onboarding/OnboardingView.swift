@@ -1,91 +1,62 @@
 import SwiftUI
 import SwiftData
 
-/// 家族グループの作成（または参加案内）。
+/// 初回起動: 機能紹介（スワイプ）→ 家族セットアップ。
 struct OnboardingView: View {
     @Environment(\.modelContext) private var context
 
+    @State private var page = 0
     @State private var familyName = "わたしの家族"
     @State private var myName = ""
     @State private var colorIndex = 0
 
+    private var setupPageIndex: Int { OnboardingContent.introPages.count }
+    private var isSetupPage: Bool { page == setupPageIndex }
+
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 28) {
-                    header
-                    OnboardingHowItWorks()
-
-                    VStack(alignment: .leading, spacing: 20) {
-                        field(title: "家族の名前") {
-                            TextField("わたしの家族", text: $familyName)
-                                .textFieldStyle(.genki)
-                        }
-                        field(title: "あなたの名前") {
-                            TextField("例: お母さん / さくら", text: $myName)
-                                .textFieldStyle(.genki)
-                        }
-                        field(title: "あなたの色") {
-                            colorPicker
-                        }
-                    }
-                    .genkiCard()
-
-                    Button("家族をはじめる", action: createFamily)
-                        .buttonStyle(.genkiPrimary)
-                        .disabled(myName.trimmingCharacters(in: .whitespaces).isEmpty)
-
-                    Text("家族の招待は、作成後に「家族」タブの共有リンクから送れます。")
-                        .font(GenkiFont.caption())
-                        .foregroundStyle(GenkiPalette.muted)
-                        .multilineTextAlignment(.center)
-
-                    Text("データの削除は、いつでも「家族」タブから行えます。")
-                        .font(GenkiFont.caption())
-                        .foregroundStyle(GenkiPalette.muted)
-                        .multilineTextAlignment(.center)
+        VStack(spacing: 0) {
+            TabView(selection: $page) {
+                ForEach(Array(OnboardingContent.introPages.enumerated()), id: \.offset) { index, introPage in
+                    OnboardingIntroPageView(page: introPage)
+                        .tag(index)
                 }
-                .padding(20)
+
+                OnboardingSetupView(
+                    familyName: $familyName,
+                    myName: $myName,
+                    colorIndex: $colorIndex
+                )
+                .tag(setupPageIndex)
             }
-            .genkiScreenBackground()
-            .navigationTitle("Genki")
+            .tabViewStyle(.page(indexDisplayMode: .always))
+            .animation(.easeInOut, value: page)
+
+            bottomBar
+                .padding(.horizontal, 20)
+                .padding(.bottom, 24)
         }
+        .genkiScreenBackground()
     }
 
-    private var header: some View {
-        VStack(spacing: 10) {
-            Image(systemName: "sun.max.fill")
-                .font(.system(size: 56))
-                .foregroundStyle(GenkiPalette.primary)
-            Text("家族がつながる、家族が安心する")
-                .font(GenkiFont.title())
-                .foregroundStyle(GenkiPalette.text)
-                .multilineTextAlignment(.center)
-        }
-        .padding(.top, 12)
-    }
+    private var bottomBar: some View {
+        VStack(spacing: 12) {
+            if isSetupPage {
+                Button("家族をはじめる", action: createFamily)
+                    .buttonStyle(.genkiPrimary)
+                    .disabled(myName.trimmingCharacters(in: .whitespaces).isEmpty)
+            } else {
+                Button(page == setupPageIndex - 1 ? "設定へ" : "次へ") {
+                    withAnimation { page += 1 }
+                }
+                .buttonStyle(.genkiPrimary)
 
-    private func field<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(GenkiFont.headline())
-                .foregroundStyle(GenkiPalette.text)
-            content()
-        }
-    }
-
-    private var colorPicker: some View {
-        HStack(spacing: 12) {
-            ForEach(GenkiPalette.memberColors.indices, id: \.self) { index in
-                Circle()
-                    .fill(GenkiPalette.memberColors[index])
-                    .frame(width: 36, height: 36)
-                    .overlay(
-                        Circle().stroke(GenkiPalette.text, lineWidth: colorIndex == index ? 3 : 0)
-                    )
-                    .onTapGesture { colorIndex = index }
-                    .accessibilityLabel("色 \(index + 1)")
-                    .accessibilityAddTraits(colorIndex == index ? .isSelected : [])
+                if page < setupPageIndex - 1 {
+                    Button("スキップ") {
+                        withAnimation { page = setupPageIndex }
+                    }
+                    .font(GenkiFont.callout())
+                    .foregroundStyle(GenkiPalette.muted)
+                }
             }
         }
     }
