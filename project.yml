@@ -14,8 +14,8 @@ settings:
     DEVELOPMENT_TEAM: NUZ8XA844N
     CODE_SIGN_STYLE: Automatic
     CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION: YES
-    MARKETING_VERSION: "1.0.7"
-    CURRENT_PROJECT_VERSION: "7"
+    MARKETING_VERSION: "1.0.8"
+    CURRENT_PROJECT_VERSION: "8"
     ENABLE_USER_SCRIPT_SANDBOXING: YES
 
 targets:
@@ -78,6 +78,19 @@ targets:
       # - target: GenkiWatch
       #   embed: true
 
+  GenkiUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: GenkiUITests
+    dependencies:
+      - target: Genki
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.itoguchi.GenkiUITests
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: YES
+
   GenkiWidgetExtension:
     type: app-extension
     platform: iOS
@@ -130,5 +143,23 @@ schemes:
         Genki: all
     run:
       config: Debug
+      environmentVariables:
+        GENKI_ENABLE_CLOUDKIT: "1"
+    test:
+      targets:
+        - GenkiUITests
     archive:
       config: Release
+
+  GenkiUITests:
+    build:
+      targets:
+        GenkiUITests: [test]
+    run:
+      config: Debug
+      environmentVariables:
+        GENKI_ENABLE_CLOUDKIT: "1"
+        GENKI_SEED: "1"
+    test:
+      targets:
+        - GenkiUITests
