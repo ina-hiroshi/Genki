@@ -20,57 +20,82 @@ final class ShareController {
         let rootRecordName = family.id.uuidString
         logger.info("prepareShare start root=\(rootRecordName, privacy: .public)")
 
-        // ローカルにだけ残った古い参照は破棄して作り直す
         if let stored = family.shareRecordName, stored != rootRecordName {
             family.shareRecordName = nil
         }
 
-        // 1) 既存の共有があればそれを再利用する。
+        // 1) 有効な既存 share があれば再利用。
         if let existing = await manager.fetchShareIfExists(forRootRecordName: rootRecordName) {
             logger.info("prepareShare reuse existing share url=\(existing.url?.absoluteString ?? "nil", privacy: .public)")
             stampShareMetadata(on: family, rootRecordName: rootRecordName)
             return (existing, manager.container)
         }
 
-        // 2) root レコードを用意（既存があれば再利用、無ければ新規）。
+        // 2) root はあるが share が壊れている場合は削除して作り直す。
+        try await manager.deleteBrokenRootShare(forRootRecordName: rootRecordName)
+
         let rootID = CKRecord.ID(recordName: rootRecordName, zoneID: manager.zoneID)
+        let rootIsNew = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) == nil
+
         let root: CKRecord
-        if let existingRoot = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) {
-            logger.info("prepareShare reuse existing root record")
-            root = existingRoot
-        } else {
+        if rootIsNew {
             logger.info("prepareShare create new root record")
             root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
-        }
-        root["name"] = family.name as CKRecordValue
+            root["name"] = family.name as CKRecordValue
 
-        // 3) share を作成して root と同時に atomic 保存する。
+            let share = makeShare(for: family, root: root)
+            let saved = try await manager.saveRecords([root, share],
+                                                      in: manager.privateDB,
+                                                      savePolicy: .allKeys)
+            logger.info("prepareShare saved new root+share count=\(saved.count)")
+            return try await resolveShare(from: saved, share: share, rootRecordName: rootRecordName, family: family)
+        }
+
+        // 3) 既存 root に share を付ける（root と share は別保存が正しい）。
+        logger.info("prepareShare attach share to existing root")
+        guard var serverRoot = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) else {
+            throw GenkiCloudError.shareNotFound
+        }
+        serverRoot["name"] = family.name as CKRecordValue
+        _ = try await manager.saveRecords([serverRoot],
+                                          in: manager.privateDB,
+                                          savePolicy: .changedKeys)
+
+        guard let freshRoot = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) else {
+            throw GenkiCloudError.shareNotFound
+        }
+
+        let share = makeShare(for: family, root: freshRoot)
+        let saved = try await manager.saveRecords([share],
+                                                  in: manager.privateDB,
+                                                  savePolicy: .allKeys)
+        logger.info("prepareShare saved share on existing root count=\(saved.count)")
+        return try await resolveShare(from: saved, share: share, rootRecordName: rootRecordName, family: family)
+    }
+
+    private func makeShare(for family: FamilyGroup, root: CKRecord) -> CKShare {
         let share = CKShare(rootRecord: root)
         share[CKShare.SystemFieldKey.title] = "\(family.name)（Genki）" as CKRecordValue
         share.publicPermission = .none
+        return share
+    }
 
-        let saved = try await manager.saveRecords([root, share],
-                                                  in: manager.privateDB,
-                                                  savePolicy: .allKeys)
-        logger.info("prepareShare saveRecords ok count=\(saved.count)")
-
+    private func resolveShare(from saved: [CKRecord.ID: CKRecord],
+                              share: CKShare,
+                              rootRecordName: String,
+                              family: FamilyGroup) async throws -> (CKShare, CKContainer) {
         stampShareMetadata(on: family, rootRecordName: rootRecordName)
 
-        // 保存に成功していれば share は確実に存在する。
-        // 戻り値を recordID で照合し、型が落ちている場合はローカル share に server メタデータをマージして返す。
         if let savedShare = saved[share.recordID] as? CKShare {
             logger.info("prepareShare return saved CKShare url=\(savedShare.url?.absoluteString ?? "nil", privacy: .public)")
             return (savedShare, manager.container)
         }
 
-        // 念のためサーバーから取り直して URL を確実にする。
         if let fetched = await manager.fetchShareIfExists(forRootRecordName: rootRecordName) {
             logger.info("prepareShare re-fetched share url=\(fetched.url?.absoluteString ?? "nil", privacy: .public)")
             return (fetched, manager.container)
         }
 
-        // 保存に成功している以上ローカル share はシェア可能。
-        // CKModifyRecordsOperation により server メタデータ（URL 等）が反映済み。
         logger.info("prepareShare fallback to local share url=\(share.url?.absoluteString ?? "nil", privacy: .public)")
         return (share, manager.container)
     }

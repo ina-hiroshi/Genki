@@ -117,6 +117,45 @@ final class CloudKitManager {
         }
     }
 
+    /// レコードを削除する。
+    func deleteRecords(withIDs ids: [CKRecord.ID], in database: CKDatabase? = nil) async throws {
+        guard !ids.isEmpty else { return }
+        let db = database ?? privateDB
+        let op = CKModifyRecordsOperation(recordsToSave: nil, recordIDsToDelete: ids)
+        op.isAtomic = true
+        op.qualityOfService = .userInitiated
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            op.modifyRecordsResultBlock = { result in
+                switch result {
+                case .success: cont.resume()
+                case .failure(let error):
+                    self.logger.error("deleteRecords failed: \(error.localizedDescription, privacy: .public)")
+                    cont.resume(throwing: error)
+                }
+            }
+            db.add(op)
+        }
+    }
+
+    /// root に壊れた share 参照だけが残っている場合、root と orphan share を削除する。
+    func deleteBrokenRootShare(forRootRecordName recordName: String) async throws {
+        let rootID = CKRecord.ID(recordName: recordName, zoneID: zoneID)
+        guard let root = await fetchRecordIfExists(with: rootID, in: privateDB) else { return }
+
+        guard let shareReference = root.share else {
+            // share 未作成の root — そのまま attach フローへ。
+            return
+        }
+
+        if await fetchRecordIfExists(with: shareReference.recordID, in: privateDB) != nil {
+            // share レコードは存在する — 触らない。
+            return
+        }
+
+        try await deleteRecords(withIDs: [shareReference.recordID, rootID], in: privateDB)
+        logger.info("deleteBrokenRootShare removed broken root=\(recordName, privacy: .public)")
+    }
+
     /// 既存の root レコードに紐づく CKShare を取得する。無ければ nil。
     func fetchShareIfExists(forRootRecordName recordName: String) async -> CKShare? {
         let rootID = CKRecord.ID(recordName: recordName, zoneID: zoneID)

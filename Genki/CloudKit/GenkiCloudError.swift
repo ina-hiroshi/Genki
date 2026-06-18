@@ -22,10 +22,11 @@ enum GenkiCloudError: LocalizedError {
         }
         let ns = error as NSError
 
-        // スキーマ未デプロイは文言から判定（CKError コードに依らず最優先）。
-        if ns.localizedDescription.contains("Did not find record type")
-            || ns.localizedDescription.contains("Cannot create new type")
-            || ns.localizedDescription.contains("record type") {
+        let description = ns.localizedDescription
+
+        // スキーマ未デプロイは特定の文言のみ判定（"record type" 単体は誤検知が多い）。
+        if description.contains("Did not find record type")
+            || description.contains("Cannot create new type") {
             return """
             CloudKitのスキーマがProduction環境に未デプロイの可能性があります。\
             開発者が CloudKit Dashboard で FamilyGroup / CheckIn / CompletionLog をデプロイしてください。
