@@ -92,12 +92,29 @@ final class CloudKitManager {
         return try await db.record(for: id)
     }
 
-    /// 既存の root レコードに紐づく CKShare を取得する。
-    func fetchShare(forRootRecordName recordName: String) async throws -> CKShare? {
+    /// レコードが無い場合は nil（unknownItem はエラーにしない）。
+    func fetchRecordIfExists(with id: CKRecord.ID, in database: CKDatabase? = nil) async -> CKRecord? {
+        do {
+            return try await fetchRecord(with: id, in: database)
+        } catch {
+            if let ckError = error as? CKError, ckError.code == .unknownItem {
+                return nil
+            }
+            logger.error("fetchRecordIfExists error: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    /// 既存の root レコードに紐づく CKShare を取得する。無ければ nil。
+    func fetchShareIfExists(forRootRecordName recordName: String) async -> CKShare? {
         let rootID = CKRecord.ID(recordName: recordName, zoneID: zoneID)
-        let root = try await fetchRecord(with: rootID, in: privateDB)
+        guard let root = await fetchRecordIfExists(with: rootID, in: privateDB) else {
+            return nil
+        }
         guard let shareReference = root.share else { return nil }
-        let shareRecord = try await fetchRecord(with: shareReference.recordID, in: privateDB)
+        guard let shareRecord = await fetchRecordIfExists(with: shareReference.recordID, in: privateDB) else {
+            return nil
+        }
         return shareRecord as? CKShare
     }
 }

@@ -15,56 +15,50 @@ final class ShareController {
         try await manager.requireAvailableAccount()
         try await manager.ensureCustomZone()
 
-        if let recordName = family.shareRecordName {
-            if let existing = try await manager.fetchShare(forRootRecordName: recordName) {
-                return (existing, manager.container)
-            }
-            if let repaired = try await repairShare(for: family, rootRecordName: recordName) {
-                return (repaired, manager.container)
-            }
+        let rootRecordName = family.id.uuidString
+
+        // ローカルにだけ残った古い参照は破棄して作り直す
+        if let stored = family.shareRecordName, stored != rootRecordName {
+            family.shareRecordName = nil
         }
 
-        let rootID = CKRecord.ID(recordName: family.id.uuidString, zoneID: manager.zoneID)
-        let root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
-        root["name"] = family.name as CKRecordValue
+        if let existing = await manager.fetchShareIfExists(forRootRecordName: rootRecordName) {
+            stampShareMetadata(on: family, rootRecordName: rootRecordName)
+            return (existing, manager.container)
+        }
+
+        let rootID = CKRecord.ID(recordName: rootRecordName, zoneID: manager.zoneID)
+        let root: CKRecord
+        if let existingRoot = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) {
+            root = existingRoot
+            root["name"] = family.name as CKRecordValue
+        } else {
+            root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
+            root["name"] = family.name as CKRecordValue
+        }
 
         let share = CKShare(rootRecord: root)
         share[CKShare.SystemFieldKey.title] = "\(family.name)（Genki）" as CKRecordValue
         share.publicPermission = .none
 
         let saved = try await manager.saveRecords([root, share], in: manager.privateDB, savePolicy: .allKeys)
-        guard let ckShare = saved.first(where: { $0 is CKShare }) as? CKShare else {
-            if let fetched = try await manager.fetchShare(forRootRecordName: root.recordID.recordName) {
-                family.shareRecordName = root.recordID.recordName
-                family.cloudKitRootZoneOwnerName = manager.zoneID.ownerName
-                return (fetched, manager.container)
-            }
-            throw GenkiCloudError.shareNotFound
+
+        if let ckShare = saved.first(where: { $0 is CKShare }) as? CKShare {
+            stampShareMetadata(on: family, rootRecordName: rootRecordName)
+            return (ckShare, manager.container)
         }
 
-        family.shareRecordName = root.recordID.recordName
-        family.cloudKitRootZoneOwnerName = manager.zoneID.ownerName
-        return (ckShare, manager.container)
+        if let fetched = await manager.fetchShareIfExists(forRootRecordName: rootRecordName) {
+            stampShareMetadata(on: family, rootRecordName: rootRecordName)
+            return (fetched, manager.container)
+        }
+
+        throw GenkiCloudError.shareNotFound
     }
 
-    /// root は存在するが CKShare が欠けている場合に修復する。
-    private func repairShare(for family: FamilyGroup, rootRecordName: String) async throws -> CKShare? {
-        let rootID = CKRecord.ID(recordName: rootRecordName, zoneID: manager.zoneID)
-        do {
-            let root = try await manager.fetchRecord(with: rootID, in: manager.privateDB)
-            if root.share != nil,
-               let share = try await manager.fetchShare(forRootRecordName: rootRecordName) {
-                return share
-            }
-            let share = CKShare(rootRecord: root)
-            share[CKShare.SystemFieldKey.title] = "\(family.name)（Genki）" as CKRecordValue
-            share.publicPermission = .none
-            let saved = try await manager.saveRecords([share], in: manager.privateDB, savePolicy: .allKeys)
-            return saved.first as? CKShare
-        } catch {
-            family.shareRecordName = nil
-            return nil
-        }
+    private func stampShareMetadata(on family: FamilyGroup, rootRecordName: String) {
+        family.shareRecordName = rootRecordName
+        family.cloudKitRootZoneOwnerName = manager.zoneID.ownerName
     }
 
     /// 受け取った共有メタデータを受諾し、参加オンボーディング用の状態を保存する。
@@ -83,12 +77,15 @@ final class ShareController {
             manager.container.add(op)
         }
 
-        let root = try await manager.fetchRecord(with: metadata.rootRecordID, in: manager.sharedDB)
+        let rootRecordID = metadata.hierarchicalRootRecordID ?? metadata.rootRecordID
+        guard let root = await manager.fetchRecordIfExists(with: rootRecordID, in: manager.sharedDB) else {
+            throw GenkiCloudError.shareNotFound
+        }
         let familyName = root["name"] as? String ?? "家族"
         ShareAcceptanceStore.storePendingJoin(
-            rootRecordName: metadata.rootRecordID.recordName,
+            rootRecordName: rootRecordID.recordName,
             familyName: familyName,
-            zoneOwnerName: metadata.rootRecordID.zoneID.ownerName
+            zoneOwnerName: rootRecordID.zoneID.ownerName
         )
     }
 

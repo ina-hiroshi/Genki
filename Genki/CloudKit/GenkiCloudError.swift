@@ -26,7 +26,7 @@ enum GenkiCloudError: LocalizedError {
             case .notAuthenticated, .accountTemporarilyUnavailable:
                 return GenkiCloudError.iCloudUnavailable.localizedDescription
             case .unknownItem:
-                return "CloudKit上にデータが見つかりません。共有の作成からやり直してください。"
+                return "CloudKit上に家族データが見つかりませんでした。もう一度「共有リンクを送る」をお試しください。"
             default:
                 break
             }
