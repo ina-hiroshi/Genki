@@ -3,7 +3,6 @@ import Foundation
 enum GenkiCloudError: LocalizedError {
     case iCloudUnavailable
     case shareNotFound
-    case schemaNotDeployed(String)
 
     var errorDescription: String? {
         switch self {
@@ -11,44 +10,42 @@ enum GenkiCloudError: LocalizedError {
             return "iCloudにサインインしてください。設定アプリ → Apple ID → iCloud で確認できます。"
         case .shareNotFound:
             return "共有リンクが見つかりませんでした。もう一度お試しください。"
-        case .schemaNotDeployed(let detail):
-            return "CloudKitの設定が未完了です。\(detail)"
         }
     }
 
+    /// ユーザー向けメッセージ。CloudKit の生エラーをそのまま見せて誤判定を防ぐ。
     static func friendlyMessage(for error: Error) -> String {
         if let genki = error as? GenkiCloudError {
             return genki.localizedDescription
         }
-        let ns = error as NSError
+        return technicalDetail(for: error)
+    }
 
-        let description = ns.localizedDescription
-
-        // スキーマ未デプロイは特定の文言のみ判定（"record type" 単体は誤検知が多い）。
-        if description.contains("Did not find record type")
-            || description.contains("Cannot create new type") {
-            return """
-            CloudKitのスキーマがProduction環境に未デプロイの可能性があります。\
-            開発者が CloudKit Dashboard で FamilyGroup / CheckIn / CompletionLog をデプロイしてください。
-            """
+    /// ログ・UI 向けの詳細メッセージ。
+    static func technicalDetail(for error: Error) -> String {
+        if let ckError = error as? CKError {
+            var lines = ["CK \(ckError.code.rawValue): \(ckError.localizedDescription)"]
+            if let partial = ckError.partialErrorsByItemID {
+                for (itemID, itemError) in partial {
+                    let ns = itemError as NSError
+                    let name: String
+                    if let recordID = itemID as? CKRecord.ID {
+                        name = recordID.recordName
+                    } else {
+                        name = String(describing: itemID)
+                    }
+                    lines.append("  · \(name): \(ns.localizedDescription)")
+                }
+            }
+            if let retry = ckError.retryAfterSeconds {
+                lines.append("(再試行まで \(Int(retry)) 秒)")
+            }
+            return lines.joined(separator: "\n")
         }
 
+        let ns = error as NSError
         if ns.domain == CKErrorDomain {
-            switch CKError.Code(rawValue: ns.code) {
-            case .notAuthenticated, .accountTemporarilyUnavailable:
-                return GenkiCloudError.iCloudUnavailable.localizedDescription
-            case .networkUnavailable, .networkFailure, .serviceUnavailable, .requestRateLimited:
-                return "ネットワークに接続できませんでした。電波の良い場所でもう一度お試しください。"
-            case .quotaExceeded:
-                return "iCloudの容量が不足しています。空き容量を確保してからお試しください。"
-            case .unknownItem:
-                return "CloudKit上に家族データが見つかりませんでした。もう一度「共有リンクを送る」をお試しください。"
-            case .permissionFailure:
-                return "iCloud共有の権限がありません。設定アプリ → Apple ID → iCloud をご確認ください。"
-            default:
-                // 切り分けのため CKError コードを併記する。
-                return "iCloud共有でエラーが発生しました（コード \(ns.code)）。\(ns.localizedDescription)"
-            }
+            return "CK \(ns.code): \(ns.localizedDescription)"
         }
         return ns.localizedDescription
     }

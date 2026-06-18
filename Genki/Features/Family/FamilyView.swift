@@ -110,7 +110,12 @@ struct FamilyView: View {
                 try? context.save()
                 shareSheetItem = ShareSheetItem(share: share, container: container)
             } catch {
-                shareError = "共有の準備に失敗しました: \(GenkiCloudError.friendlyMessage(for: error))"
+                let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+                let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
+                shareError = """
+                共有の準備に失敗しました (v\(version) \(build)): \
+                \(GenkiCloudError.friendlyMessage(for: error))
+                """
             }
         }
     }

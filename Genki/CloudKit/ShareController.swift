@@ -18,59 +18,58 @@ final class ShareController {
         try await manager.ensureCustomZone()
 
         let rootRecordName = family.id.uuidString
-        logger.info("prepareShare start root=\(rootRecordName, privacy: .public)")
+        logger.info("prepareShare start root=\(rootRecordName, privacy: .public) container=\(GenkiConstants.iCloudContainerID, privacy: .public)")
 
         if let stored = family.shareRecordName, stored != rootRecordName {
             family.shareRecordName = nil
         }
 
-        // 1) 有効な既存 share があれば再利用。
         if let existing = await manager.fetchShareIfExists(forRootRecordName: rootRecordName) {
             logger.info("prepareShare reuse existing share url=\(existing.url?.absoluteString ?? "nil", privacy: .public)")
             stampShareMetadata(on: family, rootRecordName: rootRecordName)
             return (existing, manager.container)
         }
 
-        // 2) root はあるが share が壊れている場合は削除して作り直す。
         try await manager.deleteBrokenRootShare(forRootRecordName: rootRecordName)
 
         let rootID = CKRecord.ID(recordName: rootRecordName, zoneID: manager.zoneID)
-        let rootIsNew = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) == nil
+        let serverRoot = try await upsertRootRecord(id: rootID, name: family.name)
 
-        let root: CKRecord
-        if rootIsNew {
-            logger.info("prepareShare create new root record")
-            root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
-            root["name"] = family.name as CKRecordValue
-
-            let share = makeShare(for: family, root: root)
-            let saved = try await manager.saveRecords([root, share],
-                                                      in: manager.privateDB,
-                                                      savePolicy: .allKeys)
-            logger.info("prepareShare saved new root+share count=\(saved.count)")
-            return try await resolveShare(from: saved, share: share, rootRecordName: rootRecordName, family: family)
+        if let existing = await manager.fetchShareIfExists(forRootRecordName: rootRecordName) {
+            logger.info("prepareShare share appeared after root upsert")
+            stampShareMetadata(on: family, rootRecordName: rootRecordName)
+            return (existing, manager.container)
         }
 
-        // 3) 既存 root に share を付ける（root と share は別保存が正しい）。
-        logger.info("prepareShare attach share to existing root")
-        guard var serverRoot = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) else {
-            throw GenkiCloudError.shareNotFound
-        }
-        serverRoot["name"] = family.name as CKRecordValue
-        _ = try await manager.saveRecords([serverRoot],
-                                          in: manager.privateDB,
-                                          savePolicy: .changedKeys)
-
-        guard let freshRoot = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) else {
-            throw GenkiCloudError.shareNotFound
-        }
-
-        let share = makeShare(for: family, root: freshRoot)
+        let share = makeShare(for: family, root: serverRoot)
         let saved = try await manager.saveRecords([share],
                                                   in: manager.privateDB,
                                                   savePolicy: .allKeys)
-        logger.info("prepareShare saved share on existing root count=\(saved.count)")
+        logger.info("prepareShare saved share count=\(saved.count)")
         return try await resolveShare(from: saved, share: share, rootRecordName: rootRecordName, family: family)
+    }
+
+    /// 1) root をサーバーに保存 → 2) 最新 root を取得、という Apple 推奨フロー。
+    private func upsertRootRecord(id rootID: CKRecord.ID, name: String) async throws -> CKRecord {
+        if let existing = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) {
+            logger.info("prepareShare update existing root")
+            existing["name"] = name as CKRecordValue
+            _ = try await manager.saveRecords([existing],
+                                              in: manager.privateDB,
+                                              savePolicy: .changedKeys)
+        } else {
+            logger.info("prepareShare create root on server")
+            let root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
+            root["name"] = name as CKRecordValue
+            _ = try await manager.saveRecords([root],
+                                              in: manager.privateDB,
+                                              savePolicy: .allKeys)
+        }
+
+        guard let serverRoot = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) else {
+            throw GenkiCloudError.shareNotFound
+        }
+        return serverRoot
     }
 
     private func makeShare(for family: FamilyGroup, root: CKRecord) -> CKShare {
