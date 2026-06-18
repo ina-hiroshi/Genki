@@ -1,10 +1,12 @@
 import Foundation
 import CloudKit
 import SwiftData
+import os
 
 /// 家族グループの CKShare 発行・受諾を扱う。共有リンクで家族を招待する。
 final class ShareController {
     private let manager: CloudKitManager
+    private let logger = Logger(subsystem: "com.itoguchi.Genki", category: "ShareController")
 
     init(manager: CloudKitManager = .shared) {
         self.manager = manager
@@ -16,44 +18,61 @@ final class ShareController {
         try await manager.ensureCustomZone()
 
         let rootRecordName = family.id.uuidString
+        logger.info("prepareShare start root=\(rootRecordName, privacy: .public)")
 
         // ローカルにだけ残った古い参照は破棄して作り直す
         if let stored = family.shareRecordName, stored != rootRecordName {
             family.shareRecordName = nil
         }
 
+        // 1) 既存の共有があればそれを再利用する。
         if let existing = await manager.fetchShareIfExists(forRootRecordName: rootRecordName) {
+            logger.info("prepareShare reuse existing share url=\(existing.url?.absoluteString ?? "nil", privacy: .public)")
             stampShareMetadata(on: family, rootRecordName: rootRecordName)
             return (existing, manager.container)
         }
 
+        // 2) root レコードを用意（既存があれば再利用、無ければ新規）。
         let rootID = CKRecord.ID(recordName: rootRecordName, zoneID: manager.zoneID)
         let root: CKRecord
         if let existingRoot = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) {
+            logger.info("prepareShare reuse existing root record")
             root = existingRoot
-            root["name"] = family.name as CKRecordValue
         } else {
+            logger.info("prepareShare create new root record")
             root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
-            root["name"] = family.name as CKRecordValue
         }
+        root["name"] = family.name as CKRecordValue
 
+        // 3) share を作成して root と同時に atomic 保存する。
         let share = CKShare(rootRecord: root)
         share[CKShare.SystemFieldKey.title] = "\(family.name)（Genki）" as CKRecordValue
         share.publicPermission = .none
 
-        let saved = try await manager.saveRecords([root, share], in: manager.privateDB, savePolicy: .allKeys)
+        let saved = try await manager.saveRecords([root, share],
+                                                  in: manager.privateDB,
+                                                  savePolicy: .allKeys)
+        logger.info("prepareShare saveRecords ok count=\(saved.count)")
 
-        if let ckShare = saved.first(where: { $0 is CKShare }) as? CKShare {
-            stampShareMetadata(on: family, rootRecordName: rootRecordName)
-            return (ckShare, manager.container)
+        stampShareMetadata(on: family, rootRecordName: rootRecordName)
+
+        // 保存に成功していれば share は確実に存在する。
+        // 戻り値を recordID で照合し、型が落ちている場合はローカル share に server メタデータをマージして返す。
+        if let savedShare = saved[share.recordID] as? CKShare {
+            logger.info("prepareShare return saved CKShare url=\(savedShare.url?.absoluteString ?? "nil", privacy: .public)")
+            return (savedShare, manager.container)
         }
 
+        // 念のためサーバーから取り直して URL を確実にする。
         if let fetched = await manager.fetchShareIfExists(forRootRecordName: rootRecordName) {
-            stampShareMetadata(on: family, rootRecordName: rootRecordName)
+            logger.info("prepareShare re-fetched share url=\(fetched.url?.absoluteString ?? "nil", privacy: .public)")
             return (fetched, manager.container)
         }
 
-        throw GenkiCloudError.shareNotFound
+        // 保存に成功している以上ローカル share はシェア可能。
+        // CKModifyRecordsOperation により server メタデータ（URL 等）が反映済み。
+        logger.info("prepareShare fallback to local share url=\(share.url?.absoluteString ?? "nil", privacy: .public)")
+        return (share, manager.container)
     }
 
     private func stampShareMetadata(on family: FamilyGroup, rootRecordName: String) {

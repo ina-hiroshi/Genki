@@ -19,7 +19,7 @@ final class CloudKitManager {
 
     let zoneID = CKRecordZone.ID(zoneName: zoneName, ownerName: CKCurrentUserDefaultName)
 
-    private let logger = Logger(subsystem: "com.itoguchi.Genki", category: "CloudKit")
+    let logger = Logger(subsystem: "com.itoguchi.Genki", category: "CloudKit")
 
     private init(containerID: String = GenkiConstants.iCloudContainerID) {
         self.containerID = containerID
@@ -58,28 +58,40 @@ final class CloudKitManager {
     }
 
     /// レコードを atomic に保存する。新規作成時は .allKeys を使う。
+    /// 戻り値は recordID をキーにした保存済みレコード。個別レコードの失敗も握りつぶさず throw する。
     @discardableResult
     func saveRecords(_ records: [CKRecord],
                      in database: CKDatabase? = nil,
-                     savePolicy: CKModifyRecordsOperation.RecordSavePolicy = .allKeys) async throws -> [CKRecord] {
+                     savePolicy: CKModifyRecordsOperation.RecordSavePolicy = .allKeys) async throws -> [CKRecord.ID: CKRecord] {
         let db = database ?? privateDB
         let op = CKModifyRecordsOperation(recordsToSave: records, recordIDsToDelete: nil)
         op.savePolicy = savePolicy
         op.isAtomic = true
         op.qualityOfService = .userInitiated
 
-        return try await withCheckedThrowingContinuation { (cont: CheckedContinuation<[CKRecord], Error>) in
-            var savedRecords: [CKRecord] = []
-            op.perRecordSaveBlock = { _, result in
-                if case .success(let record) = result {
-                    savedRecords.append(record)
+        return try await withCheckedThrowingContinuation { (cont: CheckedContinuation<[CKRecord.ID: CKRecord], Error>) in
+            var savedRecords: [CKRecord.ID: CKRecord] = [:]
+            var perRecordError: Error?
+            op.perRecordSaveBlock = { recordID, result in
+                switch result {
+                case .success(let record):
+                    savedRecords[recordID] = record
+                case .failure(let error):
+                    self.logger.error("saveRecords perRecord failed \(recordID.recordName, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                    if perRecordError == nil { perRecordError = error }
                 }
             }
             op.modifyRecordsResultBlock = { result in
                 switch result {
                 case .success:
-                    cont.resume(returning: savedRecords)
+                    // 操作全体は成功でも、個別レコードが失敗していれば throw する。
+                    if let perRecordError {
+                        cont.resume(throwing: perRecordError)
+                    } else {
+                        cont.resume(returning: savedRecords)
+                    }
                 case .failure(let error):
+                    self.logger.error("saveRecords operation failed: \(error.localizedDescription, privacy: .public)")
                     cont.resume(throwing: error)
                 }
             }
