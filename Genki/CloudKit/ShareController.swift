@@ -50,14 +50,31 @@ final class ShareController {
 
         let share = makeShare(for: family, root: root)
 
-        // 新規 share は root と同一 CKModifyRecordsOperation で保存する必要がある（CKError 12 回避）。
-        let savePolicy: CKModifyRecordsOperation.RecordSavePolicy = rootIsNew ? .allKeys : .changedKeys
-        let saved = try await manager.saveRecords([root, share],
-                                                  in: manager.privateDB,
-                                                  savePolicy: savePolicy)
-        logger.info("prepareShare saved root+share atomically count=\(saved.count)")
+        // 新規 share は root と同一操作で .allKeys 保存が必須。
+        // .changedKeys だと "Cannot create new type cloudkit.share in production schema" になる。
+        do {
+            let saved = try await saveRootAndShareAtomically(root: root, share: share)
+            logger.info("prepareShare saved root+share atomically count=\(saved.count)")
+            return try await resolveShare(from: saved, share: share, rootRecordName: rootRecordName, family: family)
+        } catch {
+            guard !rootIsNew else { throw error }
+            logger.error("prepareShare attach failed, recreating root: \(error.localizedDescription, privacy: .public)")
+            try await manager.deleteBrokenRootShare(forRootRecordName: rootRecordName)
+            try await manager.deleteRecords(withIDs: [rootID], in: manager.privateDB)
 
-        return try await resolveShare(from: saved, share: share, rootRecordName: rootRecordName, family: family)
+            let freshRoot = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
+            freshRoot["name"] = family.name as CKRecordValue
+            let freshShare = makeShare(for: family, root: freshRoot)
+            let saved = try await saveRootAndShareAtomically(root: freshRoot, share: freshShare)
+            logger.info("prepareShare recreated root+share count=\(saved.count)")
+            return try await resolveShare(from: saved, share: freshShare, rootRecordName: rootRecordName, family: family)
+        }
+    }
+
+    private func saveRootAndShareAtomically(root: CKRecord, share: CKShare) async throws -> [CKRecord.ID: CKRecord] {
+        try await manager.saveRecords([root, share],
+                                      in: manager.privateDB,
+                                      savePolicy: .allKeys)
     }
 
     private func makeShare(for family: FamilyGroup, root: CKRecord) -> CKShare {
