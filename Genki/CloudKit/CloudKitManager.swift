@@ -57,46 +57,59 @@ final class CloudKitManager {
         }
     }
 
-    /// レコードを atomic に保存する。新規作成時は .allKeys を使う。
-    /// 戻り値は recordID をキーにした保存済みレコード。個別レコードの失敗も握りつぶさず throw する。
+    /// カスタムゾーンを削除して作り直す（失敗した hierarchy share の残骸を消す）。
+    func resetCustomZone() async throws {
+        try await requireAvailableAccount()
+        let op = CKModifyRecordZonesOperation(recordZonesToSave: nil, recordZoneIDsToDelete: [zoneID])
+        op.qualityOfService = .userInitiated
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            op.modifyRecordZonesResultBlock = { result in
+                switch result {
+                case .success: cont.resume()
+                case .failure(let error): cont.resume(throwing: error)
+                }
+            }
+            privateDB.add(op)
+        }
+        try await ensureCustomZone()
+        logger.info("resetCustomZone completed")
+    }
+
+    /// レコードを atomic に保存する。
     @discardableResult
     func saveRecords(_ records: [CKRecord],
                      in database: CKDatabase? = nil,
                      savePolicy: CKModifyRecordsOperation.RecordSavePolicy = .allKeys) async throws -> [CKRecord.ID: CKRecord] {
         let db = database ?? privateDB
-        let op = CKModifyRecordsOperation(recordsToSave: records, recordIDsToDelete: nil)
-        op.savePolicy = savePolicy
-        op.isAtomic = true
-        op.qualityOfService = .userInitiated
+        let result = try await db.modifyRecords(
+            saving: records,
+            deleting: [],
+            savePolicy: savePolicy,
+            atomically: records.count > 1
+        )
 
-        return try await withCheckedThrowingContinuation { (cont: CheckedContinuation<[CKRecord.ID: CKRecord], Error>) in
-            var savedRecords: [CKRecord.ID: CKRecord] = [:]
-            var perRecordError: Error?
-            op.perRecordSaveBlock = { recordID, result in
-                switch result {
-                case .success(let record):
-                    savedRecords[recordID] = record
-                case .failure(let error):
-                    self.logger.error("saveRecords perRecord failed \(recordID.recordName, privacy: .public): \(error.localizedDescription, privacy: .public)")
-                    if perRecordError == nil { perRecordError = error }
-                }
+        var savedRecords: [CKRecord.ID: CKRecord] = [:]
+        var firstError: Error?
+        for (recordID, recordResult) in result.saveResults {
+            switch recordResult {
+            case .success(let record):
+                savedRecords[recordID] = record
+            case .failure(let error):
+                logger.error("saveRecords failed \(recordID.recordName, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                if firstError == nil { firstError = error }
             }
-            op.modifyRecordsResultBlock = { result in
-                switch result {
-                case .success:
-                    // 操作全体は成功でも、個別レコードが失敗していれば throw する。
-                    if let perRecordError {
-                        cont.resume(throwing: perRecordError)
-                    } else {
-                        cont.resume(returning: savedRecords)
-                    }
-                case .failure(let error):
-                    self.logger.error("saveRecords operation failed: \(error.localizedDescription, privacy: .public)")
-                    cont.resume(throwing: error)
-                }
-            }
-            db.add(op)
         }
+        if let firstError { throw firstError }
+        return savedRecords
+    }
+
+    /// ゾーン全体共有用 CKShare を保存する（root との同時保存は不要）。
+    func saveZoneShare(_ share: CKShare) async throws -> CKShare {
+        let saved = try await privateDB.save(share)
+        guard let ckShare = saved as? CKShare else {
+            throw GenkiCloudError.shareNotFound
+        }
+        return ckShare
     }
 
     func fetchRecord(with id: CKRecord.ID, in database: CKDatabase? = nil) async throws -> CKRecord {
@@ -104,7 +117,6 @@ final class CloudKitManager {
         return try await db.record(for: id)
     }
 
-    /// レコードが無い場合は nil（unknownItem はエラーにしない）。
     func fetchRecordIfExists(with id: CKRecord.ID, in database: CKDatabase? = nil) async -> CKRecord? {
         do {
             return try await fetchRecord(with: id, in: database)
@@ -117,55 +129,51 @@ final class CloudKitManager {
         }
     }
 
-    /// レコードを削除する。
     func deleteRecords(withIDs ids: [CKRecord.ID], in database: CKDatabase? = nil) async throws {
         guard !ids.isEmpty else { return }
         let db = database ?? privateDB
-        let op = CKModifyRecordsOperation(recordsToSave: nil, recordIDsToDelete: ids)
-        op.isAtomic = true
-        op.qualityOfService = .userInitiated
-        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-            op.modifyRecordsResultBlock = { result in
-                switch result {
-                case .success: cont.resume()
-                case .failure(let error):
-                    self.logger.error("deleteRecords failed: \(error.localizedDescription, privacy: .public)")
-                    cont.resume(throwing: error)
-                }
-            }
-            db.add(op)
-        }
+        _ = try await db.modifyRecords(saving: [], deleting: ids, savePolicy: .changedKeys, atomically: true)
     }
 
-    /// root に壊れた share 参照だけが残っている場合、root と orphan share を削除する。
-    func deleteBrokenRootShare(forRootRecordName recordName: String) async throws {
+    /// ゾーン全体共有（zone-wide share）を取得する。
+    func fetchZoneShareIfExists() async -> CKShare? {
+        let shareID = CKRecord.ID(recordName: CKRecordNameZoneWideShare, zoneID: zoneID)
+        guard let record = await fetchRecordIfExists(with: shareID, in: privateDB) else { return nil }
+        return record as? CKShare
+    }
+
+    /// 以前の hierarchy share（Share-UUID）の残骸を削除する。
+    func removeHierarchyShareArtifacts(forRootRecordName recordName: String) async throws {
         let rootID = CKRecord.ID(recordName: recordName, zoneID: zoneID)
         guard let root = await fetchRecordIfExists(with: rootID, in: privateDB) else { return }
 
-        guard let shareReference = root.share else {
-            // share 未作成の root — そのまま attach フローへ。
-            return
+        var idsToDelete: [CKRecord.ID] = []
+        if let shareReference = root.share {
+            idsToDelete.append(shareReference.recordID)
         }
-
-        if await fetchRecordIfExists(with: shareReference.recordID, in: privateDB) != nil {
-            // share レコードは存在する — 触らない。
-            return
-        }
-
-        try await deleteRecords(withIDs: [shareReference.recordID, rootID], in: privateDB)
-        logger.info("deleteBrokenRootShare removed broken root=\(recordName, privacy: .public)")
+        idsToDelete.append(rootID)
+        try await deleteRecords(withIDs: idsToDelete, in: privateDB)
+        logger.info("removeHierarchyShareArtifacts removed \(idsToDelete.count) records")
     }
 
-    /// 既存の root レコードに紐づく CKShare を取得する。無ければ nil。
-    func fetchShareIfExists(forRootRecordName recordName: String) async -> CKShare? {
-        let rootID = CKRecord.ID(recordName: recordName, zoneID: zoneID)
-        guard let root = await fetchRecordIfExists(with: rootID, in: privateDB) else {
-            return nil
+    /// 共有ゾーン内の FamilyGroup ルートレコード名を取得する（参加者側）。
+    func fetchFamilyGroupRootRecordName(in zoneID: CKRecordZone.ID, database: CKDatabase) async -> String? {
+        let query = CKQuery(recordType: Self.familyGroupRecordType, predicate: NSPredicate(value: true))
+        let op = CKQueryOperation(query: query)
+        op.zoneID = zoneID
+        op.resultsLimit = 1
+
+        return await withCheckedContinuation { (cont: CheckedContinuation<String?, Never>) in
+            var found: String?
+            op.recordMatchedBlock = { (recordID: CKRecord.ID, result: Result<CKRecord, Error>) in
+                if case .success = result {
+                    found = recordID.recordName
+                }
+            }
+            op.queryResultBlock = { _ in
+                cont.resume(returning: found)
+            }
+            database.add(op)
         }
-        guard let shareReference = root.share else { return nil }
-        guard let shareRecord = await fetchRecordIfExists(with: shareReference.recordID, in: privateDB) else {
-            return nil
-        }
-        return shareRecord as? CKShare
     }
 }

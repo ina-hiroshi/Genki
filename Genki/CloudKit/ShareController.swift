@@ -13,95 +13,68 @@ final class ShareController {
     }
 
     /// 家族グループ用の CKShare を取得または作成する。
+    /// ゾーン全体共有（zone-wide share）を使い、Production でも安定する方式。
     func prepareShare(for family: FamilyGroup) async throws -> (CKShare, CKContainer) {
         try await manager.requireAvailableAccount()
         try await manager.ensureCustomZone()
 
         let rootRecordName = family.id.uuidString
-        logger.info("prepareShare start root=\(rootRecordName, privacy: .public)")
+        logger.info("prepareShare zone-wide start root=\(rootRecordName, privacy: .public)")
 
         if let stored = family.shareRecordName, stored != rootRecordName {
             family.shareRecordName = nil
         }
 
-        if let existing = await manager.fetchShareIfExists(forRootRecordName: rootRecordName) {
-            logger.info("prepareShare reuse existing share url=\(existing.url?.absoluteString ?? "nil", privacy: .public)")
+        if let existing = await manager.fetchZoneShareIfExists() {
+            logger.info("prepareShare reuse zone share url=\(existing.url?.absoluteString ?? "nil", privacy: .public)")
+            try await upsertFamilyGroupRoot(rootRecordName: rootRecordName, name: family.name)
             stampShareMetadata(on: family, rootRecordName: rootRecordName)
             return (existing, manager.container)
         }
 
-        try await manager.deleteBrokenRootShare(forRootRecordName: rootRecordName)
+        try await manager.removeHierarchyShareArtifacts(forRootRecordName: rootRecordName)
 
-        let rootID = CKRecord.ID(recordName: rootRecordName, zoneID: manager.zoneID)
-        let rootIsNew = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) == nil
-
-        let root: CKRecord
-        if rootIsNew {
-            logger.info("prepareShare create new root+share atomically")
-            root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
-        } else {
-            logger.info("prepareShare attach new share to existing root atomically")
-            guard let existing = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) else {
-                throw GenkiCloudError.shareNotFound
-            }
-            root = existing
-        }
-        root["name"] = family.name as CKRecordValue
-
-        let share = makeShare(for: family, root: root)
-
-        // 新規 share は root と同一操作で .allKeys 保存が必須。
-        // .changedKeys だと "Cannot create new type cloudkit.share in production schema" になる。
         do {
-            let saved = try await saveRootAndShareAtomically(root: root, share: share)
-            logger.info("prepareShare saved root+share atomically count=\(saved.count)")
-            return try await resolveShare(from: saved, share: share, rootRecordName: rootRecordName, family: family)
+            let share = try await createZoneShare(for: family, rootRecordName: rootRecordName)
+            return (share, manager.container)
         } catch {
-            guard !rootIsNew else { throw error }
-            logger.error("prepareShare attach failed, recreating root: \(error.localizedDescription, privacy: .public)")
-            try await manager.deleteBrokenRootShare(forRootRecordName: rootRecordName)
-            try await manager.deleteRecords(withIDs: [rootID], in: manager.privateDB)
-
-            let freshRoot = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
-            freshRoot["name"] = family.name as CKRecordValue
-            let freshShare = makeShare(for: family, root: freshRoot)
-            let saved = try await saveRootAndShareAtomically(root: freshRoot, share: freshShare)
-            logger.info("prepareShare recreated root+share count=\(saved.count)")
-            return try await resolveShare(from: saved, share: freshShare, rootRecordName: rootRecordName, family: family)
+            logger.error("prepareShare failed, resetting zone: \(error.localizedDescription, privacy: .public)")
+            try await manager.resetCustomZone()
+            let share = try await createZoneShare(for: family, rootRecordName: rootRecordName)
+            return (share, manager.container)
         }
     }
 
-    private func saveRootAndShareAtomically(root: CKRecord, share: CKShare) async throws -> [CKRecord.ID: CKRecord] {
-        try await manager.saveRecords([root, share],
-                                      in: manager.privateDB,
-                                      savePolicy: .allKeys)
-    }
+    private func createZoneShare(for family: FamilyGroup, rootRecordName: String) async throws -> CKShare {
+        try await upsertFamilyGroupRoot(rootRecordName: rootRecordName, name: family.name)
 
-    private func makeShare(for family: FamilyGroup, root: CKRecord) -> CKShare {
-        let share = CKShare(rootRecord: root)
+        let share = CKShare(recordZoneID: manager.zoneID)
         share[CKShare.SystemFieldKey.title] = "\(family.name)（Genki）" as CKRecordValue
         share.publicPermission = .none
-        return share
+
+        let savedShare = try await manager.saveZoneShare(share)
+        logger.info("prepareShare created zone share url=\(savedShare.url?.absoluteString ?? "nil", privacy: .public)")
+        stampShareMetadata(on: family, rootRecordName: rootRecordName)
+        return savedShare
     }
 
-    private func resolveShare(from saved: [CKRecord.ID: CKRecord],
-                              share: CKShare,
-                              rootRecordName: String,
-                              family: FamilyGroup) async throws -> (CKShare, CKContainer) {
-        stampShareMetadata(on: family, rootRecordName: rootRecordName)
-
-        if let savedShare = saved[share.recordID] as? CKShare {
-            logger.info("prepareShare return saved CKShare url=\(savedShare.url?.absoluteString ?? "nil", privacy: .public)")
-            return (savedShare, manager.container)
+    private func upsertFamilyGroupRoot(rootRecordName: String, name: String) async throws {
+        let rootID = CKRecord.ID(recordName: rootRecordName, zoneID: manager.zoneID)
+        let root: CKRecord
+        let isNew: Bool
+        if let existing = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) {
+            root = existing
+            isNew = false
+        } else {
+            root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
+            isNew = true
         }
-
-        if let fetched = await manager.fetchShareIfExists(forRootRecordName: rootRecordName) {
-            logger.info("prepareShare re-fetched share url=\(fetched.url?.absoluteString ?? "nil", privacy: .public)")
-            return (fetched, manager.container)
-        }
-
-        logger.info("prepareShare fallback to local share url=\(share.url?.absoluteString ?? "nil", privacy: .public)")
-        return (share, manager.container)
+        root["name"] = name as CKRecordValue
+        _ = try await manager.saveRecords(
+            [root],
+            in: manager.privateDB,
+            savePolicy: isNew ? .allKeys : .changedKeys
+        )
     }
 
     private func stampShareMetadata(on family: FamilyGroup, rootRecordName: String) {
@@ -125,15 +98,18 @@ final class ShareController {
             manager.container.add(op)
         }
 
-        let rootRecordID = metadata.hierarchicalRootRecordID ?? metadata.rootRecordID
-        guard let root = await manager.fetchRecordIfExists(with: rootRecordID, in: manager.sharedDB) else {
-            throw GenkiCloudError.shareNotFound
-        }
-        let familyName = root["name"] as? String ?? "家族"
+        let zoneOwnerName = metadata.share.recordID.zoneID.ownerName
+        let sharedZoneID = CKRecordZone.ID(zoneName: manager.zoneID.zoneName, ownerName: zoneOwnerName)
+        let rootRecordName = await manager.fetchFamilyGroupRootRecordName(
+            in: sharedZoneID,
+            database: manager.sharedDB
+        ) ?? metadata.share.recordID.recordName
+
+        let familyName = metadata.share[CKShare.SystemFieldKey.title] as? String ?? "家族"
         ShareAcceptanceStore.storePendingJoin(
-            rootRecordName: rootRecordID.recordName,
-            familyName: familyName,
-            zoneOwnerName: rootRecordID.zoneID.ownerName
+            rootRecordName: rootRecordName,
+            familyName: familyName.replacingOccurrences(of: "（Genki）", with: ""),
+            zoneOwnerName: zoneOwnerName
         )
     }
 
