@@ -1,0 +1,134 @@
+name: Genki
+options:
+  bundleIdPrefix: com.itoguchi
+  deploymentTarget:
+    iOS: "18.0"
+    watchOS: "11.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    SWIFT_STRICT_CONCURRENCY: minimal
+    DEVELOPMENT_TEAM: NUZ8XA844N
+    CODE_SIGN_STYLE: Automatic
+    CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION: YES
+    MARKETING_VERSION: "1.0.4"
+    CURRENT_PROJECT_VERSION: "4"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+
+targets:
+  Genki:
+    type: application
+    platform: iOS
+    sources:
+      - path: Genki
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.itoguchi.Genki
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_ENTITLEMENTS: Genki/Genki.entitlements
+        TARGETED_DEVICE_FAMILY: "1"
+    entitlements:
+      path: Genki/Genki.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.itoguchi.genki
+        com.apple.developer.icloud-services:
+          - CloudKit
+        com.apple.security.application-groups:
+          - group.com.itoguchi.genki
+        com.apple.developer.usernotifications.time-sensitive: true
+        aps-environment: development
+    capabilities:
+      com.apple.iCloud:
+        enabled: true
+        options:
+          - CloudKit
+      com.apple.Push:
+        enabled: true
+      com.apple.ApplicationGroups:
+        enabled: true
+        groups:
+          - group.com.itoguchi.genki
+      com.apple.BackgroundModes:
+        enabled: true
+        options:
+          - remote-notification
+    info:
+      path: Genki/Info.plist
+      properties:
+        CFBundleDisplayName: Genki
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIBackgroundModes:
+          - remote-notification
+        NSUserNotificationsUsageDescription: "家族にリマインドや「元気だよ」を届けるために通知を使います。"
+        # 輸出コンプライアンス: 標準的な HTTPS / CloudKit のみ（免除対象）→ App Store Connect で毎回質問されない
+        ITSAppUsesNonExemptEncryption: false
+    dependencies:
+      - target: GenkiWidgetExtension
+        embed: true
+      # Watch アプリを iOS アプリに同梱する。
+      # watchOS シミュレータランタイムが必要:  xcodebuild -downloadPlatform watchOS
+      # 導入後に下記コメントを外して `xcodegen generate` で有効化する。
+      # - target: GenkiWatch
+      #   embed: true
+
+  GenkiWidgetExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: GenkiWidget
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.itoguchi.Genki.widget
+        CODE_SIGN_ENTITLEMENTS: GenkiWidget/GenkiWidget.entitlements
+        TARGETED_DEVICE_FAMILY: "1"
+    entitlements:
+      path: GenkiWidget/GenkiWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.itoguchi.genki
+    capabilities:
+      com.apple.ApplicationGroups:
+        enabled: true
+        groups:
+          - group.com.itoguchi.genki
+    info:
+      path: GenkiWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Genki
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+
+  GenkiWatch:
+    type: application
+    platform: watchOS
+    sources:
+      - path: GenkiWatch
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.itoguchi.Genki.watchkitapp
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    info:
+      path: GenkiWatch/Info.plist
+      properties:
+        CFBundleDisplayName: Genki
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: com.itoguchi.Genki
+
+schemes:
+  Genki:
+    build:
+      targets:
+        Genki: all
+    run:
+      config: Debug
+    archive:
+      config: Release

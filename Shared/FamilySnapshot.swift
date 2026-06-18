@@ -1,0 +1,67 @@
+import Foundation
+
+/// ウィジェット / Watch に渡す軽量スナップショット。
+/// アプリ本体が SwiftData から生成して App Group に書き出す。
+public struct FamilySnapshot: Codable, Equatable, Sendable {
+    public var familyName: String
+    public var generatedAt: Date
+    public var members: [MemberStatus]
+    public var upcoming: [ReminderStatus]
+
+    public init(familyName: String,
+                generatedAt: Date = .now,
+                members: [MemberStatus],
+                upcoming: [ReminderStatus]) {
+        self.familyName = familyName
+        self.generatedAt = generatedAt
+        self.members = members
+        self.upcoming = upcoming
+    }
+
+    public static let placeholder = FamilySnapshot(
+        familyName: "わたしの家族",
+        members: [
+            MemberStatus(id: "1", name: "お母さん", colorIndex: 0, checkedInToday: true),
+            MemberStatus(id: "2", name: "お父さん", colorIndex: 1, checkedInToday: false),
+            MemberStatus(id: "3", name: "さくら", colorIndex: 2, checkedInToday: true)
+        ],
+        upcoming: [
+            ReminderStatus(id: "r1", title: "おくすり", ownerName: "お母さん", time: "8:00", done: true, colorIndex: 0),
+            ReminderStatus(id: "r2", title: "散歩", ownerName: "お父さん", time: "9:00", done: false, colorIndex: 1)
+        ]
+    )
+
+    public static let empty = FamilySnapshot(familyName: "Genki", members: [], upcoming: [])
+}
+
+public struct MemberStatus: Codable, Equatable, Identifiable, Sendable {
+    public var id: String
+    public var name: String
+    public var colorIndex: Int
+    public var checkedInToday: Bool
+
+    public init(id: String, name: String, colorIndex: Int, checkedInToday: Bool) {
+        self.id = id
+        self.name = name
+        self.colorIndex = colorIndex
+        self.checkedInToday = checkedInToday
+    }
+}
+
+public struct ReminderStatus: Codable, Equatable, Identifiable, Sendable {
+    public var id: String
+    public var title: String
+    public var ownerName: String
+    public var time: String
+    public var done: Bool
+    public var colorIndex: Int
+
+    public init(id: String, title: String, ownerName: String, time: String, done: Bool, colorIndex: Int) {
+        self.id = id
+        self.title = title
+        self.ownerName = ownerName
+        self.time = time
+        self.done = done
+        self.colorIndex = colorIndex
+    }
+}
