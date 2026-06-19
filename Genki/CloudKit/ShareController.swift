@@ -13,7 +13,7 @@ final class ShareController {
     }
 
     /// 家族グループ用の CKShare を取得または作成する。
-    /// ゾーン全体共有（zone-wide share）を使い、Production でも安定する方式。
+    /// ゾーン全体共有（zone-wide share）を使う。
     func prepareShare(for family: FamilyGroup) async throws -> (CKShare, CKContainer) {
         try await manager.requireAvailableAccount()
         try await manager.ensureCustomZone()
@@ -32,17 +32,14 @@ final class ShareController {
             return (existing, manager.container)
         }
 
-        try await manager.removeHierarchyShareArtifacts(forRootRecordName: rootRecordName)
+        // 以前の hierarchy share（Share-UUID）がゾーンに残っていると zone-wide share は
+        // CKError.invalidArguments(12) になる。メッセージは cloudkit.share schema と誤表示される。
+        // ゾーンごと削除して zoneWideSharing 付きで作り直す。
+        logger.info("prepareShare resetting zone to remove hierarchy share artifacts")
+        try await manager.resetCustomZone()
 
-        do {
-            let share = try await createZoneShare(for: family, rootRecordName: rootRecordName)
-            return (share, manager.container)
-        } catch {
-            logger.error("prepareShare failed, resetting zone: \(error.localizedDescription, privacy: .public)")
-            try await manager.resetCustomZone()
-            let share = try await createZoneShare(for: family, rootRecordName: rootRecordName)
-            return (share, manager.container)
-        }
+        let share = try await createZoneShare(for: family, rootRecordName: rootRecordName)
+        return (share, manager.container)
     }
 
     private func createZoneShare(for family: FamilyGroup, rootRecordName: String) async throws -> CKShare {
@@ -60,21 +57,9 @@ final class ShareController {
 
     private func upsertFamilyGroupRoot(rootRecordName: String, name: String) async throws {
         let rootID = CKRecord.ID(recordName: rootRecordName, zoneID: manager.zoneID)
-        let root: CKRecord
-        let isNew: Bool
-        if let existing = await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) {
-            root = existing
-            isNew = false
-        } else {
-            root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
-            isNew = true
-        }
+        let root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
         root["name"] = name as CKRecordValue
-        _ = try await manager.saveRecords(
-            [root],
-            in: manager.privateDB,
-            savePolicy: isNew ? .allKeys : .changedKeys
-        )
+        _ = try await manager.saveRecords([root], in: manager.privateDB, savePolicy: .allKeys)
     }
 
     private func stampShareMetadata(on family: FamilyGroup, rootRecordName: String) {
