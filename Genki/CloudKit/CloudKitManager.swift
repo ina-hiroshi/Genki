@@ -115,23 +115,13 @@ final class CloudKitManager {
         return savedRecords
     }
 
-    /// ゾーン全体共有用 CKShare を保存する。
+    /// ゾーン全体共有用 CKShare を保存する（Apple サンプルと同じ db.save）。
     func saveZoneShare(_ share: CKShare) async throws -> CKShare {
-        let result = try await privateDB.modifyRecords(
-            saving: [share],
-            deleting: [],
-            savePolicy: .allKeys,
-            atomically: true
-        )
-        switch result.saveResults[share.recordID] {
-        case .success(let record):
-            guard let ckShare = record as? CKShare else { throw GenkiCloudError.shareNotFound }
-            return ckShare
-        case .failure(let error):
-            throw error
-        case .none:
+        let saved = try await privateDB.save(share)
+        guard let ckShare = saved as? CKShare else {
             throw GenkiCloudError.shareNotFound
         }
+        return ckShare
     }
 
     func fetchRecord(with id: CKRecord.ID, in database: CKDatabase? = nil) async throws -> CKRecord {
