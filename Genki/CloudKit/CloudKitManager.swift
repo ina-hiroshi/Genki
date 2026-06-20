@@ -97,7 +97,7 @@ final class CloudKitManager {
             saving: records,
             deleting: [],
             savePolicy: savePolicy,
-            atomically: records.count > 1
+            atomically: true
         )
 
         var savedRecords: [CKRecord.ID: CKRecord] = [:]
