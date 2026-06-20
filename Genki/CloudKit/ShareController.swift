@@ -12,14 +12,13 @@ final class ShareController {
         self.manager = manager
     }
 
-    /// 家族グループ用の CKShare を取得または作成する。
-    /// ゾーン全体共有（zone-wide share）を使う。
     func prepareShare(for family: FamilyGroup) async throws -> (CKShare, CKContainer) {
         try await manager.requireAvailableAccount()
+        try await manager.deleteLegacyZoneIfNeeded()
         try await manager.ensureCustomZone()
 
         let rootRecordName = family.id.uuidString
-        logger.info("prepareShare zone-wide start root=\(rootRecordName, privacy: .public)")
+        logger.info("prepareShare start root=\(rootRecordName, privacy: .public) zone=\(CloudKitManager.zoneName, privacy: .public)")
 
         if let stored = family.shareRecordName, stored != rootRecordName {
             family.shareRecordName = nil
@@ -32,26 +31,27 @@ final class ShareController {
             return (existing, manager.container)
         }
 
-        // 以前の hierarchy share（Share-UUID）がゾーンに残っていると zone-wide share は
-        // CKError.invalidArguments(12) になる。メッセージは cloudkit.share schema と誤表示される。
-        // ゾーンごと削除して zoneWideSharing 付きで作り直す。
-        logger.info("prepareShare resetting zone to remove hierarchy share artifacts")
-        try await manager.resetCustomZone()
-
-        let share = try await createZoneShare(for: family, rootRecordName: rootRecordName)
-        return (share, manager.container)
+        do {
+            let share = try await createZoneShareOnEmptyZone(for: family)
+            try await upsertFamilyGroupRoot(rootRecordName: rootRecordName, name: family.name)
+            stampShareMetadata(on: family, rootRecordName: rootRecordName)
+            return (share, manager.container)
+        } catch {
+            logger.error("prepareShare failed, resetting zone: \(error.localizedDescription, privacy: .public)")
+            try await manager.resetCustomZone()
+            let share = try await createZoneShareOnEmptyZone(for: family)
+            try await upsertFamilyGroupRoot(rootRecordName: rootRecordName, name: family.name)
+            stampShareMetadata(on: family, rootRecordName: rootRecordName)
+            return (share, manager.container)
+        }
     }
 
-    private func createZoneShare(for family: FamilyGroup, rootRecordName: String) async throws -> CKShare {
-        try await upsertFamilyGroupRoot(rootRecordName: rootRecordName, name: family.name)
-
+    /// 空のカスタムゾーンに zone-wide share だけを先に保存する（Apple 推奨順序）。
+    private func createZoneShareOnEmptyZone(for family: FamilyGroup) async throws -> CKShare {
         let share = CKShare(recordZoneID: manager.zoneID)
         share[CKShare.SystemFieldKey.title] = "\(family.name)（Genki）" as CKRecordValue
-        share.publicPermission = .none
-
         let savedShare = try await manager.saveZoneShare(share)
         logger.info("prepareShare created zone share url=\(savedShare.url?.absoluteString ?? "nil", privacy: .public)")
-        stampShareMetadata(on: family, rootRecordName: rootRecordName)
         return savedShare
     }
 
@@ -67,7 +67,6 @@ final class ShareController {
         family.cloudKitRootZoneOwnerName = manager.zoneID.ownerName
     }
 
-    /// 受け取った共有メタデータを受諾し、参加オンボーディング用の状態を保存する。
     func accept(_ metadata: CKShare.Metadata) async throws {
         try await manager.requireAvailableAccount()
 
@@ -98,7 +97,6 @@ final class ShareController {
         )
     }
 
-    /// 参加オンボーディング完了時に、共有ゾーンの家族をローカル SwiftData に取り込む。
     @MainActor
     func completeJoin(name: String,
                       colorIndex: Int,

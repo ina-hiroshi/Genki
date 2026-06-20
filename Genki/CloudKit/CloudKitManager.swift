@@ -9,7 +9,9 @@ final class CloudKitManager {
     static let familyGroupRecordType = "FamilyGroup"
     static let checkInRecordType = "CheckIn"
     static let completionRecordType = "CompletionLog"
-    static let zoneName = "GenkiFamilyZone"
+    static let zoneName = "GenkiSharedZone"
+    /// 1.0.16 以前の hierarchy share 残骸が残る旧ゾーン。
+    private static let legacyZoneName = "GenkiFamilyZone"
 
     private let containerID: String
 
@@ -57,22 +59,32 @@ final class CloudKitManager {
         }
     }
 
-    /// カスタムゾーンを削除して作り直す（失敗した hierarchy share の残骸を消す）。
+    /// カスタムゾーンを削除して作り直す。
     func resetCustomZone() async throws {
         try await requireAvailableAccount()
-        let op = CKModifyRecordZonesOperation(recordZonesToSave: nil, recordZoneIDsToDelete: [zoneID])
+        await deleteZone(withID: zoneID)
+        try await ensureCustomZone()
+        logger.info("resetCustomZone completed")
+    }
+
+    /// 旧ゾーン（GenkiFamilyZone）を削除する。失敗しても続行。
+    func deleteLegacyZoneIfNeeded() async {
+        let legacyID = CKRecordZone.ID(zoneName: Self.legacyZoneName, ownerName: CKCurrentUserDefaultName)
+        await deleteZone(withID: legacyID)
+    }
+
+    private func deleteZone(withID id: CKRecordZone.ID) async {
+        let op = CKModifyRecordZonesOperation(recordZonesToSave: nil, recordZoneIDsToDelete: [id])
         op.qualityOfService = .userInitiated
-        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
             op.modifyRecordZonesResultBlock = { result in
-                switch result {
-                case .success: cont.resume()
-                case .failure(let error): cont.resume(throwing: error)
+                if case .failure(let error) = result {
+                    self.logger.error("deleteZone \(id.zoneName, privacy: .public): \(error.localizedDescription, privacy: .public)")
                 }
+                cont.resume()
             }
             privateDB.add(op)
         }
-        try await ensureCustomZone()
-        logger.info("resetCustomZone completed")
     }
 
     /// レコードを atomic に保存する。
@@ -103,13 +115,23 @@ final class CloudKitManager {
         return savedRecords
     }
 
-    /// ゾーン全体共有用 CKShare を保存する（root との同時保存は不要）。
+    /// ゾーン全体共有用 CKShare を保存する。
     func saveZoneShare(_ share: CKShare) async throws -> CKShare {
-        let saved = try await privateDB.save(share)
-        guard let ckShare = saved as? CKShare else {
+        let result = try await privateDB.modifyRecords(
+            saving: [share],
+            deleting: [],
+            savePolicy: .allKeys,
+            atomically: true
+        )
+        switch result.saveResults[share.recordID] {
+        case .success(let record):
+            guard let ckShare = record as? CKShare else { throw GenkiCloudError.shareNotFound }
+            return ckShare
+        case .failure(let error):
+            throw error
+        case .none:
             throw GenkiCloudError.shareNotFound
         }
-        return ckShare
     }
 
     func fetchRecord(with id: CKRecord.ID, in database: CKDatabase? = nil) async throws -> CKRecord {
@@ -140,20 +162,6 @@ final class CloudKitManager {
         let shareID = CKRecord.ID(recordName: CKRecordNameZoneWideShare, zoneID: zoneID)
         guard let record = await fetchRecordIfExists(with: shareID, in: privateDB) else { return nil }
         return record as? CKShare
-    }
-
-    /// 以前の hierarchy share（Share-UUID）の残骸を削除する。
-    func removeHierarchyShareArtifacts(forRootRecordName recordName: String) async throws {
-        let rootID = CKRecord.ID(recordName: recordName, zoneID: zoneID)
-        guard let root = await fetchRecordIfExists(with: rootID, in: privateDB) else { return }
-
-        var idsToDelete: [CKRecord.ID] = []
-        if let shareReference = root.share {
-            idsToDelete.append(shareReference.recordID)
-        }
-        idsToDelete.append(rootID)
-        try await deleteRecords(withIDs: idsToDelete, in: privateDB)
-        logger.info("removeHierarchyShareArtifacts removed \(idsToDelete.count) records")
     }
 
     /// 共有ゾーン内の FamilyGroup ルートレコード名を取得する（参加者側）。
