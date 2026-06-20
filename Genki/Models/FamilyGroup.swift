@@ -13,6 +13,8 @@ final class FamilyGroup {
     var shareRecordName: String?
     /// 共有ゾーンのオーナー（参加者端末で sharedDB 読み書きに必要）。
     var cloudKitRootZoneOwnerName: String?
+    /// 共有データの CloudKit ゾーン名（GenkiSharedZone または _defaultZone）。
+    var cloudKitZoneName: String?
 
     @Relationship(deleteRule: .cascade, inverse: \Member.family)
     var members: [Member]? = []

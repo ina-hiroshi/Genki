@@ -95,7 +95,8 @@ enum CloudKitEventWriter {
     private static func zoneID(for family: FamilyGroup, manager: CloudKitManager) -> CKRecordZone.ID? {
         guard family.shareRecordName != nil else { return nil }
         let owner = family.cloudKitRootZoneOwnerName ?? manager.zoneID.ownerName
-        return CKRecordZone.ID(zoneName: manager.zoneID.zoneName, ownerName: owner)
+        let zoneName = family.cloudKitZoneName ?? manager.zoneID.zoneName
+        return CKRecordZone.ID(zoneName: zoneName, ownerName: owner)
     }
 
     private static func database(for family: FamilyGroup, manager: CloudKitManager) -> CKDatabase {

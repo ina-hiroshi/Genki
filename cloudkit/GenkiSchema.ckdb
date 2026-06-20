@@ -10,7 +10,7 @@ DEFINE SCHEMA
         name            STRING QUERYABLE,
         GRANT WRITE TO "_creator",
         GRANT CREATE TO "_icloud",
-        GRANT READ TO "_world"
+        GRANT READ TO "_creator"
     );
 
     RECORD TYPE CheckIn (
@@ -24,7 +24,7 @@ DEFINE SCHEMA
         date            TIMESTAMP QUERYABLE,
         GRANT WRITE TO "_creator",
         GRANT CREATE TO "_icloud",
-        GRANT READ TO "_world"
+        GRANT READ TO "_creator"
     );
 
     RECORD TYPE CompletionLog (
@@ -39,5 +39,5 @@ DEFINE SCHEMA
         date            TIMESTAMP QUERYABLE,
         GRANT WRITE TO "_creator",
         GRANT CREATE TO "_icloud",
-        GRANT READ TO "_world"
+        GRANT READ TO "_creator"
     );

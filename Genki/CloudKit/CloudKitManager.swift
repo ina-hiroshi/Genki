@@ -157,6 +157,15 @@ final class CloudKitManager {
         _ = try await db.modifyRecords(saving: [], deleting: ids, savePolicy: .changedKeys, atomically: true)
     }
 
+    /// hierarchy share（root 単位）を取得する。
+    func fetchHierarchyShare(forRootRecordName recordName: String, zoneID: CKRecordZone.ID) async -> CKShare? {
+        let rootID = CKRecord.ID(recordName: recordName, zoneID: zoneID)
+        guard let root = await fetchRecordIfExists(with: rootID, in: privateDB) else { return nil }
+        guard let shareReference = root.share else { return nil }
+        guard let shareRecord = await fetchRecordIfExists(with: shareReference.recordID, in: privateDB) else { return nil }
+        return shareRecord as? CKShare
+    }
+
     /// ゾーン全体共有（zone-wide share）を取得する。
     func fetchZoneShareIfExists() async -> CKShare? {
         let shareID = CKRecord.ID(recordName: CKRecordNameZoneWideShare, zoneID: zoneID)
