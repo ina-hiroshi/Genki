@@ -12,36 +12,59 @@ final class ShareController {
         self.manager = manager
     }
 
-    func prepareShare(for family: FamilyGroup) async throws -> (CKShare, CKContainer) {
+    /// 既存の hierarchy share があれば返す。なければ nil（UICloudSharingController の preparationHandler で新規作成）。
+    func existingShare(for family: FamilyGroup) async throws -> CKShare? {
         try await manager.requireAvailableAccount()
         await manager.deleteLegacyZoneIfNeeded()
+        try await manager.ensureCustomZone()
 
         let rootRecordName = family.id.uuidString
-        logger.info("prepareShare start root=\(rootRecordName, privacy: .public) container=\(self.manager.container.containerIdentifier ?? "?", privacy: .public)")
+        logger.info("existingShare lookup root=\(rootRecordName, privacy: .public) container=\(self.manager.container.containerIdentifier ?? "?", privacy: .public)")
 
-        if let existing = await manager.fetchZoneShareIfExists() {
-            logger.info("prepareShare reuse zone share url=\(existing.url?.absoluteString ?? "nil", privacy: .public)")
+        if let share = await manager.fetchHierarchyShare(forRootRecordName: rootRecordName, zoneID: manager.zoneID) {
             stampShareMetadata(on: family, rootRecordName: rootRecordName)
-            return (existing, manager.container)
+            return share
         }
+        return nil
+    }
 
-        // 空ゾーンに zone-wide share を保存（Apple 公式パターン）。
-        try await manager.resetCustomZone()
+    /// Apple サンプルどおり root + share を CKModifyRecordsOperation (.allKeys, atomic) で保存する。
+    func saveNewHierarchyShare(for family: FamilyGroup,
+                               completion: @escaping (CKShare?, CKContainer?, Error?) -> Void) {
+        Task {
+            do {
+                try await manager.requireAvailableAccount()
+                try await manager.ensureCustomZone()
 
-        let share = CKShare(recordZoneID: manager.zoneID)
-        share[CKShare.SystemFieldKey.title] = "\(family.name)（Genki）" as CKRecordValue
-        share.publicPermission = .readWrite
+                let rootRecordName = family.id.uuidString
+                let rootID = CKRecord.ID(recordName: rootRecordName, zoneID: manager.zoneID)
+                let root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
+                root["name"] = family.name as CKRecordValue
 
-        let savedShare = try await manager.saveZoneShare(share)
-        logger.info("prepareShare saved zone share name=\(savedShare.recordID.recordName, privacy: .public)")
+                let shareID = CKRecord.ID(recordName: UUID().uuidString, zoneID: manager.zoneID)
+                let share = CKShare(rootRecord: root, shareID: shareID)
+                share[CKShare.SystemFieldKey.title] = "\(family.name)（Genki）" as CKRecordValue
+                share.publicPermission = .readWrite
 
-        let rootID = CKRecord.ID(recordName: rootRecordName, zoneID: manager.zoneID)
-        let root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
-        root["name"] = family.name as CKRecordValue
-        _ = try await manager.saveRecords([root], in: manager.privateDB, savePolicy: .allKeys)
-
-        stampShareMetadata(on: family, rootRecordName: rootRecordName)
-        return (savedShare, manager.container)
+                let op = CKModifyRecordsOperation(recordsToSave: [root, share], recordIDsToDelete: nil)
+                op.savePolicy = .allKeys
+                op.isAtomic = true
+                op.qualityOfService = .userInitiated
+                op.modifyRecordsCompletionBlock = { _, _, error in
+                    if error == nil {
+                        Task { @MainActor in
+                            self.stampShareMetadata(on: family, rootRecordName: rootRecordName)
+                        }
+                    } else if let error {
+                        self.logger.error("saveNewHierarchyShare failed: \(error.localizedDescription, privacy: .public)")
+                    }
+                    completion(share, self.manager.container, error)
+                }
+                manager.privateDB.add(op)
+            } catch {
+                completion(nil, nil, error)
+            }
+        }
     }
 
     private func stampShareMetadata(on family: FamilyGroup, rootRecordName: String) {

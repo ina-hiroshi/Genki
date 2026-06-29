@@ -27,7 +27,7 @@ enum GenkiCloudError: LocalizedError {
             var lines = ["CK \(ckError.code.rawValue): \(ckError.localizedDescription)"]
             if ckError.code == .invalidArguments,
                ckError.localizedDescription.contains("cloudkit.share") {
-                lines.append("ヒント: iCloud コンテナの Production 環境で共有レコードが作成できない状態です。1.0.21 以降は新コンテナ iCloud.com.itoguchi.genki.v2 を使用します。Developer Portal でコンテナを追加し、Dashboard から Production へスキーマをデプロイしてください。")
+                lines.append("ヒント: 新規 CKShare は .allKeys で root と同時保存が必要です。共有シート内で再試行してください。")
             }
             if let partial = ckError.partialErrorsByItemID {
                 for (itemID, itemError) in partial {

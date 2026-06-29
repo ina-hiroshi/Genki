@@ -75,9 +75,21 @@ struct FamilyView: View {
             .genkiScreenBackground()
             .navigationTitle(family?.name ?? "家族")
             .sheet(item: $shareSheetItem) { item in
-                CloudSharingSheet(share: item.share, container: item.container) {
-                    shareSheetItem = nil
-                }
+                FamilyCloudSharingSheet(
+                    family: item.family,
+                    existingShare: item.existingShare,
+                    container: item.container,
+                    onShared: { try? context.save() },
+                    onDismiss: { shareSheetItem = nil },
+                    onError: { error in
+                        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+                        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
+                        shareError = """
+                        共有の準備に失敗しました (v\(version) \(build)): \
+                        \(GenkiCloudError.friendlyMessage(for: error))
+                        """
+                    }
+                )
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
             }
@@ -106,9 +118,12 @@ struct FamilyView: View {
             defer { isPreparingShare = false }
             do {
                 let controller = ShareController()
-                let (share, container) = try await controller.prepareShare(for: family)
-                try? context.save()
-                shareSheetItem = ShareSheetItem(share: share, container: container)
+                let existingShare = try await controller.existingShare(for: family)
+                shareSheetItem = ShareSheetItem(
+                    family: family,
+                    existingShare: existingShare,
+                    container: CloudKitManager.shared.container
+                )
             } catch {
                 let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
                 let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"

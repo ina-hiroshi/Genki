@@ -2,22 +2,39 @@ import CloudKit
 import SwiftUI
 import UIKit
 
-/// UICloudSharingController を SwiftUI の sheet 内で正しく表示するラッパー。
-struct CloudSharingSheet: UIViewControllerRepresentable {
-    let share: CKShare
+/// 家族グループの共有 UI。既存 share があれば表示、なければ preparationHandler で Apple 公式フロー。
+struct FamilyCloudSharingSheet: UIViewControllerRepresentable {
+    let family: FamilyGroup
+    let existingShare: CKShare?
     let container: CKContainer
+    var onShared: () -> Void
     var onDismiss: () -> Void
+    var onError: (Error) -> Void
 
     func makeUIViewController(context: Context) -> UIViewController {
-        let sharing = UICloudSharingController(share: share, container: container)
+        let sharing: UICloudSharingController
+        if let existingShare {
+            sharing = UICloudSharingController(share: existingShare, container: container)
+        } else {
+            let controller = ShareController()
+            sharing = UICloudSharingController { _, prepareCompletionHandler in
+                controller.saveNewHierarchyShare(for: family, completion: prepareCompletionHandler)
+            }
+        }
         sharing.delegate = context.coordinator
-        sharing.availablePermissions = [.allowReadWrite, .allowPrivate]
+        sharing.availablePermissions = [.allowReadWrite, .allowPrivate, .allowPublic]
+        return embedInHost(sharing)
+    }
 
-        // sheet 内で UICloudSharingController 単体だと背景が真っ黒になることがあるため、
-        // システム背景色を持つ親 VC に embed する。
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onShared: onShared, onDismiss: onDismiss, onError: onError)
+    }
+
+    private func embedInHost(_ sharing: UICloudSharingController) -> UIViewController {
         let host = UIViewController()
         host.view.backgroundColor = .systemBackground
-
         host.addChild(sharing)
         sharing.view.translatesAutoresizingMaskIntoConstraints = false
         host.view.addSubview(sharing.view)
@@ -31,20 +48,19 @@ struct CloudSharingSheet: UIViewControllerRepresentable {
         return host
     }
 
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onDismiss: onDismiss)
-    }
-
     final class Coordinator: NSObject, UICloudSharingControllerDelegate {
+        let onShared: () -> Void
         let onDismiss: () -> Void
+        let onError: (Error) -> Void
 
-        init(onDismiss: @escaping () -> Void) {
+        init(onShared: @escaping () -> Void, onDismiss: @escaping () -> Void, onError: @escaping (Error) -> Void) {
+            self.onShared = onShared
             self.onDismiss = onDismiss
+            self.onError = onError
         }
 
         func cloudSharingController(_ csc: UICloudSharingController, failedToSaveShareWithError error: Error) {
+            onError(error)
             onDismiss()
         }
 
@@ -53,6 +69,7 @@ struct CloudSharingSheet: UIViewControllerRepresentable {
         }
 
         func cloudSharingControllerDidSaveShare(_ csc: UICloudSharingController) {
+            onShared()
             onDismiss()
         }
 
@@ -64,6 +81,7 @@ struct CloudSharingSheet: UIViewControllerRepresentable {
 
 struct ShareSheetItem: Identifiable {
     let id = UUID()
-    let share: CKShare
+    let family: FamilyGroup
+    let existingShare: CKShare?
     let container: CKContainer
 }
