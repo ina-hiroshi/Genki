@@ -8,7 +8,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 TEAM_ID="NUZ8XA844N"
-CONTAINER="iCloud.com.itoguchi.genki"
+CONTAINER="iCloud.com.itoguchi.genki.v2"
 SCHEMA="cloudkit/GenkiSchema.ckdb"
 
 echo "=== CloudKit 状態確認 ==="
@@ -48,5 +48,5 @@ echo "3. 右上「Deploy Schema Changes…」が表示されていれば Product
 echo "4. App ID「com.itoguchi.Genki」の Capabilities → iCloud → 上記コンテナにチェック"
 echo ""
 echo "※ cloudkit.share はシステム型のため Dashboard に表示されません。"
-echo "  「Cannot create new type cloudkit.share」はスキーマ未デプロイではなく、"
-echo "  ゾーン内に古い hierarchy share が残っている場合の誤表示です（1.0.16 で修正）。"
+echo "  旧コンテナ iCloud.com.itoguchi.genki では Production CKShare 作成が拒否されます。"
+echo "  1.0.21 以降は ${CONTAINER} を使用してください。"

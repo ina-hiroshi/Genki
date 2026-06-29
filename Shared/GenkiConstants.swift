@@ -5,8 +5,9 @@ public enum GenkiConstants {
     /// App Group。ウィジェットやWatchとデータを共有するために使用。
     public static let appGroupID = "group.com.itoguchi.genki"
 
-    /// CloudKit コンテナID。
-    public static let iCloudContainerID = "iCloud.com.itoguchi.genki"
+    /// CloudKit コンテナID。旧 iCloud.com.itoguchi.genki は Production で CKShare 不可のため v2 へ移行。
+    /// ※ iCloud.com.itoguchi.Genki（大文字 G）は Apple が小文字と同一扱いで登録不可。
+    public static let iCloudContainerID = "iCloud.com.itoguchi.genki.v2"
 
     /// 共有スナップショットの保存キー。
     public static let snapshotDefaultsKey = "genki.family.snapshot.v1"

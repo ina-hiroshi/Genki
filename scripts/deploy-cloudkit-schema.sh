@@ -12,7 +12,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 TEAM_ID="NUZ8XA844N"
-CONTAINER="iCloud.com.itoguchi.genki"
+CONTAINER="iCloud.com.itoguchi.genki.v2"
 SCHEMA="cloudkit/GenkiSchema.ckdb"
 
 echo "→ CloudKit スキーマを development にインポート"
