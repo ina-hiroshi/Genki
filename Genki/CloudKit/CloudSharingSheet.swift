@@ -2,65 +2,37 @@ import CloudKit
 import SwiftUI
 import UIKit
 
-/// 家族グループの共有 UI。既存 share があれば表示、なければ preparationHandler で Apple 公式フロー。
-struct FamilyCloudSharingSheet: UIViewControllerRepresentable {
-    let family: FamilyGroup
-    let existingShare: CKShare?
+/// UICloudSharingController を SwiftUI から表示する。share は事前に CloudKit へ保存済みであること。
+struct CloudSharingSheet: UIViewControllerRepresentable {
+    let share: CKShare
     let container: CKContainer
-    var onShared: () -> Void
     var onDismiss: () -> Void
-    var onError: (Error) -> Void
+    var onError: ((Error) -> Void)?
 
-    func makeUIViewController(context: Context) -> UIViewController {
-        let sharing: UICloudSharingController
-        if let existingShare {
-            sharing = UICloudSharingController(share: existingShare, container: container)
-        } else {
-            let controller = ShareController()
-            sharing = UICloudSharingController { _, prepareCompletionHandler in
-                controller.saveNewHierarchyShare(for: family, completion: prepareCompletionHandler)
-            }
-        }
+    func makeUIViewController(context: Context) -> UICloudSharingController {
+        let sharing = UICloudSharingController(share: share, container: container)
         sharing.delegate = context.coordinator
         sharing.availablePermissions = [.allowReadWrite, .allowPrivate, .allowPublic]
-        return embedInHost(sharing)
+        return sharing
     }
 
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+    func updateUIViewController(_ uiViewController: UICloudSharingController, context: Context) {}
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onShared: onShared, onDismiss: onDismiss, onError: onError)
-    }
-
-    private func embedInHost(_ sharing: UICloudSharingController) -> UIViewController {
-        let host = UIViewController()
-        host.view.backgroundColor = .systemBackground
-        host.addChild(sharing)
-        sharing.view.translatesAutoresizingMaskIntoConstraints = false
-        host.view.addSubview(sharing.view)
-        NSLayoutConstraint.activate([
-            sharing.view.leadingAnchor.constraint(equalTo: host.view.leadingAnchor),
-            sharing.view.trailingAnchor.constraint(equalTo: host.view.trailingAnchor),
-            sharing.view.topAnchor.constraint(equalTo: host.view.topAnchor),
-            sharing.view.bottomAnchor.constraint(equalTo: host.view.bottomAnchor)
-        ])
-        sharing.didMove(toParent: host)
-        return host
+        Coordinator(onDismiss: onDismiss, onError: onError)
     }
 
     final class Coordinator: NSObject, UICloudSharingControllerDelegate {
-        let onShared: () -> Void
         let onDismiss: () -> Void
-        let onError: (Error) -> Void
+        let onError: ((Error) -> Void)?
 
-        init(onShared: @escaping () -> Void, onDismiss: @escaping () -> Void, onError: @escaping (Error) -> Void) {
-            self.onShared = onShared
+        init(onDismiss: @escaping () -> Void, onError: ((Error) -> Void)?) {
             self.onDismiss = onDismiss
             self.onError = onError
         }
 
         func cloudSharingController(_ csc: UICloudSharingController, failedToSaveShareWithError error: Error) {
-            onError(error)
+            onError?(error)
             onDismiss()
         }
 
@@ -69,7 +41,6 @@ struct FamilyCloudSharingSheet: UIViewControllerRepresentable {
         }
 
         func cloudSharingControllerDidSaveShare(_ csc: UICloudSharingController) {
-            onShared()
             onDismiss()
         }
 
@@ -81,7 +52,6 @@ struct FamilyCloudSharingSheet: UIViewControllerRepresentable {
 
 struct ShareSheetItem: Identifiable {
     let id = UUID()
-    let family: FamilyGroup
-    let existingShare: CKShare?
+    let share: CKShare
     let container: CKContainer
 }

@@ -74,12 +74,10 @@ struct FamilyView: View {
             .genkiListStyle()
             .genkiScreenBackground()
             .navigationTitle(family?.name ?? "家族")
-            .sheet(item: $shareSheetItem) { item in
-                FamilyCloudSharingSheet(
-                    family: item.family,
-                    existingShare: item.existingShare,
+            .fullScreenCover(item: $shareSheetItem) { item in
+                CloudSharingSheet(
+                    share: item.share,
                     container: item.container,
-                    onShared: { try? context.save() },
                     onDismiss: { shareSheetItem = nil },
                     onError: { error in
                         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
@@ -90,8 +88,7 @@ struct FamilyView: View {
                         """
                     }
                 )
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
+                .ignoresSafeArea()
             }
             .confirmationDialog(
                 "すべてのデータを削除しますか？",
@@ -118,12 +115,9 @@ struct FamilyView: View {
             defer { isPreparingShare = false }
             do {
                 let controller = ShareController()
-                let existingShare = try await controller.existingShare(for: family)
-                shareSheetItem = ShareSheetItem(
-                    family: family,
-                    existingShare: existingShare,
-                    container: CloudKitManager.shared.container
-                )
+                let (share, container) = try await controller.prepareShare(for: family)
+                try? context.save()
+                shareSheetItem = ShareSheetItem(share: share, container: container)
             } catch {
                 let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
                 let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
