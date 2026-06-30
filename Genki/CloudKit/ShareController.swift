@@ -12,7 +12,7 @@ final class ShareController {
         self.manager = manager
     }
 
-    /// 既存 share を再利用するか、root + share を .allKeys で新規作成して返す。
+    /// ゾーン全体共有を作成または再利用する。
     func prepareShare(for family: FamilyGroup) async throws -> (CKShare, CKContainer) {
         try await manager.requireAvailableAccount()
         await manager.deleteLegacyZoneIfNeeded()
@@ -21,36 +21,36 @@ final class ShareController {
         let rootRecordName = family.id.uuidString
         logger.info("prepareShare root=\(rootRecordName, privacy: .public) container=\(self.manager.container.containerIdentifier ?? "?", privacy: .public)")
 
-        if let existing = await manager.fetchHierarchyShare(forRootRecordName: rootRecordName, zoneID: manager.zoneID) {
-            logger.info("prepareShare reuse share url=\(existing.url?.absoluteString ?? "nil", privacy: .public)")
+        if let existing = await manager.fetchZoneShareIfExists() {
+            try await ensureFamilyGroupRoot(family: family, rootRecordName: rootRecordName)
+            logger.info("prepareShare reuse zone share url=\(existing.url?.absoluteString ?? "nil", privacy: .public)")
             stampShareMetadata(on: family, rootRecordName: rootRecordName)
             return (existing, manager.container)
         }
 
-        let rootID = CKRecord.ID(recordName: rootRecordName, zoneID: manager.zoneID)
-        let root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
-        root["name"] = family.name as CKRecordValue
+        // 空ゾーンに share のみ先保存（Apple zone-wide パターン）。
+        try await manager.resetCustomZone()
 
-        let shareID = CKRecord.ID(recordName: UUID().uuidString, zoneID: manager.zoneID)
-        let share = CKShare(rootRecord: root, shareID: shareID)
+        let share = CKShare(recordZoneID: manager.zoneID)
         share[CKShare.SystemFieldKey.title] = "\(family.name)（Genki）" as CKRecordValue
         share.publicPermission = .readWrite
 
-        let saved = try await manager.saveRecords([root, share], savePolicy: .allKeys)
-        logger.info("prepareShare saved count=\(saved.count)")
+        let savedShare = try await manager.saveShareRecord(share)
+        logger.info("prepareShare saved zone share name=\(savedShare.recordID.recordName, privacy: .public)")
 
-        let ckShare: CKShare
-        if let savedShare = saved[share.recordID] as? CKShare {
-            ckShare = savedShare
-        } else if let fetched = await manager.fetchHierarchyShare(forRootRecordName: rootRecordName,
-                                                                  zoneID: manager.zoneID) {
-            ckShare = fetched
-        } else {
-            throw GenkiCloudError.shareNotFound
-        }
+        try await ensureFamilyGroupRoot(family: family, rootRecordName: rootRecordName)
 
         stampShareMetadata(on: family, rootRecordName: rootRecordName)
-        return (ckShare, manager.container)
+        return (savedShare, manager.container)
+    }
+
+    private func ensureFamilyGroupRoot(family: FamilyGroup, rootRecordName: String) async throws {
+        let rootID = CKRecord.ID(recordName: rootRecordName, zoneID: manager.zoneID)
+        if await manager.fetchRecordIfExists(with: rootID, in: manager.privateDB) != nil { return }
+
+        let root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
+        root["name"] = family.name as CKRecordValue
+        _ = try await manager.saveRecords([root], savePolicy: .allKeys)
     }
 
     private func stampShareMetadata(on family: FamilyGroup, rootRecordName: String) {

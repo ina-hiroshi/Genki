@@ -5,12 +5,28 @@
 #   ./scripts/upload-testflight.sh 1.0.4
 #   → MARKETING_VERSION=1.0.4, CURRENT_PROJECT_VERSION=4, VERSION ファイル更新
 #
-# 輸出コンプライアンス:
-#   Info.plist の ITSAppUsesNonExemptEncryption = false により、
-#   標準暗号（HTTPS / CloudKit 等）のみ使用と宣言済み。
+# 認証:
+#   App Store Connect API キー（~/開発/TsureBen/ios/.appstore.env または APPSTORE_ENV）
 #
 set -euo pipefail
 cd "$(dirname "$0")/.."
+
+ENV_FILE="${APPSTORE_ENV:-$HOME/開発/TsureBen/ios/.appstore.env}"
+if [[ -f "$ENV_FILE" ]]; then
+  # shellcheck disable=SC1090
+  set -a; source "$ENV_FILE"; set +a
+fi
+: "${ASC_KEY_ID:?ASC_KEY_ID 未設定 — $ENV_FILE を確認}"
+: "${ASC_ISSUER_ID:?ASC_ISSUER_ID 未設定 — $ENV_FILE を確認}"
+: "${ASC_KEY_PATH:?ASC_KEY_PATH 未設定 — $ENV_FILE を確認}"
+ASC_KEY_PATH="${ASC_KEY_PATH/#\~/$HOME}"
+
+AUTH_ARGS=(
+  -allowProvisioningUpdates
+  -authenticationKeyPath "$ASC_KEY_PATH"
+  -authenticationKeyID "$ASC_KEY_ID"
+  -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+)
 
 VERSION="${1:-}"
 if [[ -n "$VERSION" ]]; then
@@ -38,14 +54,14 @@ xcodebuild archive \
   -destination 'generic/platform=iOS' \
   -archivePath build/Genki.xcarchive \
   -derivedDataPath build/DerivedData \
-  -allowProvisioningUpdates
+  "${AUTH_ARGS[@]}"
 
 echo "→ App Store Connect へアップロード"
 xcodebuild -exportArchive \
   -archivePath build/Genki.xcarchive \
   -exportPath build/export \
   -exportOptionsPlist ExportOptions.plist \
-  -allowProvisioningUpdates
+  "${AUTH_ARGS[@]}"
 
 RELEASE_VERSION="$(grep 'MARKETING_VERSION:' project.yml | head -1 | sed 's/.*"\(.*\)".*/\1/')"
 BUILD_NUM="$(grep 'CURRENT_PROJECT_VERSION:' project.yml | head -1 | sed 's/.*"\(.*\)".*/\1/')"

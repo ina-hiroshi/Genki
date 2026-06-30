@@ -87,41 +87,89 @@ final class CloudKitManager {
         }
     }
 
+    /// CKShare を .allKeys で単独保存する（zone-wide / hierarchy 共通）。
+    func saveShareRecord(_ share: CKShare) async throws -> CKShare {
+        let saved = try await saveRecords([share], savePolicy: .allKeys)
+        guard let ckShare = saved[share.recordID] as? CKShare else {
+            throw GenkiCloudError.shareNotFound
+        }
+        return ckShare
+    }
+
     /// レコードを atomic に保存する。
     @discardableResult
     func saveRecords(_ records: [CKRecord],
                      in database: CKDatabase? = nil,
                      savePolicy: CKModifyRecordsOperation.RecordSavePolicy = .allKeys) async throws -> [CKRecord.ID: CKRecord] {
         let db = database ?? privateDB
-        let result = try await db.modifyRecords(
-            saving: records,
-            deleting: [],
-            savePolicy: savePolicy,
-            atomically: true
-        )
+        do {
+            let result = try await db.modifyRecords(
+                saving: records,
+                deleting: [],
+                savePolicy: savePolicy,
+                atomically: records.count > 1
+            )
+            return try Self.collectSaveResults(result.saveResults, logger: logger)
+        } catch let error as CKError where error.code == .partialFailure {
+            throw Self.errorFromPartialFailure(error, logger: logger)
+        }
+    }
 
+    private static func collectSaveResults(_ saveResults: [CKRecord.ID: Result<CKRecord, Error>],
+                                           logger: Logger) throws -> [CKRecord.ID: CKRecord] {
         var savedRecords: [CKRecord.ID: CKRecord] = [:]
-        var firstError: Error?
-        for (recordID, recordResult) in result.saveResults {
+        var failures: [(CKRecord.ID, Error)] = []
+        for (recordID, recordResult) in saveResults {
             switch recordResult {
             case .success(let record):
                 savedRecords[recordID] = record
             case .failure(let error):
                 logger.error("saveRecords failed \(recordID.recordName, privacy: .public): \(error.localizedDescription, privacy: .public)")
-                if firstError == nil { firstError = error }
+                failures.append((recordID, error))
             }
         }
-        if let firstError { throw firstError }
+        if !failures.isEmpty {
+            throw combinedSaveError(failures: failures)
+        }
         return savedRecords
     }
 
-    /// ゾーン全体共有用 CKShare を保存する（Apple サンプルと同じ db.save）。
-    func saveZoneShare(_ share: CKShare) async throws -> CKShare {
-        let saved = try await privateDB.save(share)
-        guard let ckShare = saved as? CKShare else {
-            throw GenkiCloudError.shareNotFound
+    private static func errorFromPartialFailure(_ error: CKError, logger: Logger) -> Error {
+        if let partial = error.partialErrorsByItemID {
+            var failures: [(CKRecord.ID, Error)] = []
+            for (itemID, itemError) in partial {
+                if let recordID = itemID as? CKRecord.ID {
+                    logger.error("partial failure \(recordID.recordName, privacy: .public): \(itemError.localizedDescription, privacy: .public)")
+                    failures.append((recordID, itemError))
+                }
+            }
+            if !failures.isEmpty {
+                return combinedSaveError(failures: failures)
+            }
         }
-        return ckShare
+        return error
+    }
+
+    private static func combinedSaveError(failures: [(CKRecord.ID, Error)]) -> Error {
+        guard failures.count == 1 else {
+            let lines = failures.map { id, error in
+                "\(id.recordName): \(error.localizedDescription)"
+            }
+            return NSError(
+                domain: CKErrorDomain,
+                code: CKError.Code.serverRejectedRequest.rawValue,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "Atomic failure\n" + lines.joined(separator: "\n"),
+                    CKPartialErrorsByItemIDKey: Dictionary(uniqueKeysWithValues: failures.map { ($0.0, $0.1 as NSError) })
+                ]
+            )
+        }
+        return failures[0].1
+    }
+
+    /// ゾーン全体共有用 CKShare を保存する。
+    func saveZoneShare(_ share: CKShare) async throws -> CKShare {
+        try await saveShareRecord(share)
     }
 
     func fetchRecord(with id: CKRecord.ID, in database: CKDatabase? = nil) async throws -> CKRecord {

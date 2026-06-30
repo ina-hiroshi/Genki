@@ -9,7 +9,7 @@
 		<string>iCloud.com.itoguchi.genki.v2</string>
 	</array>
 	<key>com.apple.developer.icloud-container-environment</key>
-	<string>Production</string>
+	<string>Development</string>
 	<key>com.apple.developer.icloud-services</key>
 	<array>
 		<string>CloudKit</string>
