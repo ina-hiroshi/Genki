@@ -25,8 +25,12 @@ enum GenkiCloudError: LocalizedError {
     static func technicalDetail(for error: Error) -> String {
         if let ckError = error as? CKError {
             var lines = ["CK \(ckError.code.rawValue): \(ckError.localizedDescription)"]
+            if ckError.code == .invalidArguments,
+               ckError.localizedDescription.contains("cloudkit.share") {
+                lines.append("ヒント: cloudkit.share 型が Production に未デプロイです。TestFlight 1.0.25(Development)で共有を1回成功させ、CloudKit Dashboard から Deploy Schema Changes… を実行してください。")
+            }
             if ckError.code == .partialFailure || ckError.localizedDescription.contains("Atomic failure") {
-                lines.append("ヒント: 共有レコード (cloudkit.share) の保存に失敗しています。")
+                lines.append("ヒント: 共有レコードの保存に失敗しています。上記の cloudkit.share デプロイ手順を先に実行してください。")
             }
             if let partial = ckError.partialErrorsByItemID {
                 for (itemID, itemError) in partial {
