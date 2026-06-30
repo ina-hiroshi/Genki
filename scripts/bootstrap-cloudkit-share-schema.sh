@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # cloudkit.share 型を Development で生成し、Production へデプロイする手順を支援する。
 #
-# 背景: cloudkit.share は Development で共有を1回作成すると JIT 生成される。
-#       その後 Dashboard の Deploy Schema Changes で Production へ反映する必要がある。
+# 重要: TestFlight / App Store 版は entitlement に Development があっても
+#       常に Production CloudKit に接続する。初回の共有型生成は Xcode Run（Debug）のみ有効。
 #
 # 使い方:
 #   ./scripts/bootstrap-cloudkit-share-schema.sh check    # 現状確認
@@ -25,6 +25,9 @@ check_schema() {
 
 echo "=== CloudKit 共有型ブートストラップ ==="
 echo "コンテナ: ${CONTAINER}"
+echo ""
+echo "⚠️  TestFlight では cloudkit.share を生成できません（常に Production）。"
+echo "   Mac シミュレーターで生成: ./scripts/bootstrap-share-via-simulator.sh"
 echo ""
 
 DEV_SCHEMA="$(check_schema development)"
@@ -65,23 +68,20 @@ if [[ "$MODE" == "wait" ]]; then
     fi
     echo "   …待機中 (${i}/60)"
   done
-  echo "   ⚠️  スキーマ変化なし。TestFlight 1.0.25 で「共有リンクを送る」が成功したか確認してください。"
+  echo "   ⚠️  スキーマ変化なし。Xcode Run で「共有リンクを送る」が成功したか確認してください。"
   exit 1
 fi
 
-echo "=== 手順（必須）==="
+echo "=== 手順（iPhone USB 不要）==="
 echo ""
-echo "【フェーズ1】Development で共有型を生成"
-echo "  1. TestFlight で 1.0.25 (Development) をインストール"
-echo "  2. 家族 → 共有リンクを送る"
-echo "  3. 共有シートが開けば OK（cloudkit.share 型が Development に生成される）"
+echo "【1】Mac シミュレーターで共有型を生成"
+echo "  ./scripts/bootstrap-share-via-simulator.sh"
+echo "  ※ 初回のみ: Simulator → 設定 → Apple Account に iCloud サインイン"
 echo ""
-echo "【フェーズ2】Production へデプロイ"
-echo "  1. ${DASHBOARD_URL}"
-echo "  2. コンテナ ${CONTAINER} を選択"
-echo "  3. Deploy Schema Changes… → cloudkit.share 等を含め Production へ Deploy"
+echo "【2】CloudKit Dashboard で Production へデプロイ"
+echo "  ${DASHBOARD_URL}"
+echo "  → ${CONTAINER} → Deploy Schema Changes… → Production"
 echo ""
-echo "【フェーズ3】Production 版をテスト"
-echo "  1. TestFlight 1.0.26 (Production) をインストール"
-echo "  2. 共有リンクを送る → 共有シートが開けば完了"
+echo "【3】TestFlight（実機）で最終確認"
+echo "  家族 → 共有リンクを送る（CK 12 が出なければ完了）"
 echo ""

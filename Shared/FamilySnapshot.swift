@@ -18,18 +18,34 @@ public struct FamilySnapshot: Codable, Equatable, Sendable {
         self.upcoming = upcoming
     }
 
-    public static let placeholder = FamilySnapshot(
-        familyName: "わたしの家族",
-        members: [
-            MemberStatus(id: "1", name: "お母さん", colorIndex: 0, checkedInToday: true),
-            MemberStatus(id: "2", name: "お父さん", colorIndex: 1, checkedInToday: false),
-            MemberStatus(id: "3", name: "さくら", colorIndex: 2, checkedInToday: true)
-        ],
-        upcoming: [
-            ReminderStatus(id: "r1", title: "おくすり", ownerName: "お母さん", time: "8:00", done: true, colorIndex: 0),
-            ReminderStatus(id: "r2", title: "散歩", ownerName: "お父さん", time: "9:00", done: false, colorIndex: 1)
-        ]
-    )
+    public static var placeholder: FamilySnapshot {
+        FamilySnapshot(
+            familyName: String(localized: "default_family_name"),
+            members: [
+                MemberStatus(id: "1", name: String(localized: "sample_member_mom"), colorIndex: 0, checkedInToday: true, genkiLevel: .great),
+                MemberStatus(id: "2", name: String(localized: "sample_member_dad"), colorIndex: 1, checkedInToday: false, genkiLevel: nil),
+                MemberStatus(id: "3", name: String(localized: "sample_member_sakura"), colorIndex: 2, checkedInToday: true, genkiLevel: .okay)
+            ],
+            upcoming: [
+                ReminderStatus(
+                    id: "r1",
+                    title: String(localized: "sample_reminder_medicine"),
+                    ownerName: String(localized: "sample_member_mom"),
+                    time: "8:00",
+                    done: true,
+                    colorIndex: 0
+                ),
+                ReminderStatus(
+                    id: "r2",
+                    title: String(localized: "sample_reminder_walk"),
+                    ownerName: String(localized: "sample_member_dad"),
+                    time: "9:00",
+                    done: false,
+                    colorIndex: 1
+                )
+            ]
+        )
+    }
 
     public static let empty = FamilySnapshot(familyName: "Genki", members: [], upcoming: [])
 }
@@ -39,12 +55,20 @@ public struct MemberStatus: Codable, Equatable, Identifiable, Sendable {
     public var name: String
     public var colorIndex: Int
     public var checkedInToday: Bool
+    /// 今日の元気度。未チェックインなら nil。
+    public var genkiLevel: Int?
 
-    public init(id: String, name: String, colorIndex: Int, checkedInToday: Bool) {
+    public init(id: String, name: String, colorIndex: Int, checkedInToday: Bool, genkiLevel: GenkiLevel? = nil) {
         self.id = id
         self.name = name
         self.colorIndex = colorIndex
         self.checkedInToday = checkedInToday
+        self.genkiLevel = genkiLevel?.rawValue
+    }
+
+    public var level: GenkiLevel? {
+        guard let genkiLevel else { return nil }
+        return GenkiLevel(rawValue: genkiLevel)
     }
 }
 

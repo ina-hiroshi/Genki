@@ -81,7 +81,7 @@ final class ShareController {
             guard let root = await manager.fetchRecordIfExists(with: rootRecordID, in: manager.sharedDB) else {
                 throw GenkiCloudError.shareNotFound
             }
-            let familyName = root["name"] as? String ?? "家族"
+            let familyName = root["name"] as? String ?? String(localized: "family")
             ShareAcceptanceStore.storePendingJoin(
                 rootRecordName: rootRecordID.recordName,
                 familyName: familyName,
@@ -97,7 +97,7 @@ final class ShareController {
               ) else {
             throw GenkiCloudError.shareNotFound
         }
-        let familyName = root["name"] as? String ?? "家族"
+        let familyName = root["name"] as? String ?? String(localized: "family")
         ShareAcceptanceStore.storePendingJoin(
             rootRecordName: rootRecordName,
             familyName: familyName,

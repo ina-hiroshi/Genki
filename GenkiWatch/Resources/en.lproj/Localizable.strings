@@ -1,0 +1,31 @@
+/* WatchHomeView */
+"watch_sent" = "Sent";
+"watch_check_in_prompt" = "How are you today?";
+"watch_family_today" = "Family Today";
+
+/* GenkiLevel */
+"genki_level_great" = "Feeling great";
+"genki_level_okay" = "Okay";
+"genki_level_rough" = "A bit rough";
+"genki_level_great_short" = "Great";
+"genki_level_okay_short" = "Okay";
+"genki_level_rough_short" = "Rough";
+"genki_level_great_detail" = "Doing well as usual";
+"genki_level_okay_detail" = "No major issues";
+"genki_level_rough_detail" = "Please check on me";
+
+/* Shared */
+"family" = "Family";
+"reaction_heart" = "Heart";
+"reaction_thumbs_up" = "Thumbs up";
+"reaction_smile" = "Smile";
+"reaction_clap" = "Clap";
+"reaction_star" = "Star";
+
+/* SampleData / Placeholder */
+"default_family_name" = "My Family";
+"sample_member_mom" = "Mom";
+"sample_member_dad" = "Dad";
+"sample_member_sakura" = "Sakura";
+"sample_reminder_medicine" = "Medication";
+"sample_reminder_walk" = "Walk";

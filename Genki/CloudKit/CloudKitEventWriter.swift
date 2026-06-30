@@ -7,7 +7,7 @@ import os
 enum CloudKitEventWriter {
     private static let logger = Logger(subsystem: "com.itoguchi.Genki", category: "CloudKitSync")
 
-    static func publishCheckIn(memberName: String, family: FamilyGroup) async {
+    static func publishCheckIn(memberName: String, level: GenkiLevel, family: FamilyGroup) async {
         guard FeatureFlags.cloudKitEnabled, family.shareRecordName != nil else { return }
         let manager = CloudKitManager.shared
         guard let zoneID = zoneID(for: family, manager: manager) else { return }
@@ -18,6 +18,7 @@ enum CloudKitEventWriter {
         )
         record["memberName"] = memberName as CKRecordValue
         record["date"] = Date.now as CKRecordValue
+        record["level"] = level.rawValue as CKRecordValue
 
         do {
             let db = database(for: family, manager: manager)
@@ -59,12 +60,14 @@ enum CloudKitEventWriter {
             guard let zoneID = zoneID(for: family, manager: manager) else { continue }
             let db = database(for: family, manager: manager)
             await notifyNewRecords(ofType: CloudKitManager.checkInRecordType, in: db, zoneID: zoneID) { record in
-                let name = record["memberName"] as? String ?? "家族"
-                NotificationManager.shared.notifyCheckIn(memberName: name)
+                let name = record["memberName"] as? String ?? String(localized: "family")
+                let levelValue = record["level"] as? Int ?? GenkiLevel.great.rawValue
+                let level = GenkiLevel(rawValue: levelValue) ?? .great
+                NotificationManager.shared.notifyCheckIn(memberName: name, level: level)
             }
             await notifyNewRecords(ofType: CloudKitManager.completionRecordType, in: db, zoneID: zoneID) { record in
-                let name = record["memberName"] as? String ?? "家族"
-                let title = record["reminderTitle"] as? String ?? "リマインド"
+                let name = record["memberName"] as? String ?? String(localized: "family")
+                let title = record["reminderTitle"] as? String ?? String(localized: "default_reminder_title")
                 NotificationManager.shared.notifyCompletion(memberName: name, reminderTitle: title)
             }
         }

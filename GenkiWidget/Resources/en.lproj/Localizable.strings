@@ -1,0 +1,19 @@
+/* FamilyStatusWidget */
+"widget_family_today" = "Family Today";
+"widget_description" = "See your family's check-ins and reminders at a glance.";
+
+/* Shared */
+"family" = "Family";
+"reaction_heart" = "Heart";
+"reaction_thumbs_up" = "Thumbs up";
+"reaction_smile" = "Smile";
+"reaction_clap" = "Clap";
+"reaction_star" = "Star";
+
+/* SampleData / Placeholder */
+"default_family_name" = "My Family";
+"sample_member_mom" = "Mom";
+"sample_member_dad" = "Dad";
+"sample_member_sakura" = "Sakura";
+"sample_reminder_medicine" = "Medication";
+"sample_reminder_walk" = "Walk";

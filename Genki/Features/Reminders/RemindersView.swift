@@ -23,7 +23,7 @@ struct RemindersView: View {
                                     Text(reminder.title)
                                         .font(GenkiFont.body())
                                         .foregroundStyle(GenkiPalette.text)
-                                    Text("\(reminder.owner?.name ?? "家族")・\(reminder.timeText)\(reminder.isRepeating ? "・繰り返し" : "")")
+                                    Text(reminderSubtitle(for: reminder))
                                         .font(GenkiFont.caption())
                                         .foregroundStyle(GenkiPalette.muted)
                                 }
@@ -35,13 +35,13 @@ struct RemindersView: View {
                 }
             }
             .genkiScreenBackground()
-            .navigationTitle("リマインダー")
+            .navigationTitle(String(localized: "tab_reminders"))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showingEditor = true } label: {
                         Image(systemName: "plus")
                     }
-                    .accessibilityLabel("リマインドを追加")
+                    .accessibilityLabel(String(localized: "reminders_add_a11y"))
                 }
             }
             .sheet(isPresented: $showingEditor) {
@@ -50,19 +50,28 @@ struct RemindersView: View {
         }
     }
 
+    private func reminderSubtitle(for reminder: Reminder) -> String {
+        let owner = reminder.owner?.name ?? String(localized: "family")
+        var line = String(format: String(localized: "reminder_row_format"), owner, reminder.timeText)
+        if reminder.isRepeating {
+            line += String(localized: "reminder_repeating_suffix")
+        }
+        return line
+    }
+
     private var emptyState: some View {
         VStack(spacing: 16) {
             Image(systemName: "checklist")
                 .font(.system(size: 44))
                 .foregroundStyle(GenkiPalette.primary)
-            Text("リマインドを追加しよう")
+            Text(String(localized: "reminders_empty_title"))
                 .font(GenkiFont.title())
                 .foregroundStyle(GenkiPalette.text)
-            Text("服薬・散歩・水分など、家族で見守りたいことを登録できます。")
+            Text(String(localized: "reminders_empty_detail"))
                 .font(GenkiFont.callout())
                 .foregroundStyle(GenkiPalette.muted)
                 .multilineTextAlignment(.center)
-            Button("追加する") { showingEditor = true }
+            Button(String(localized: "reminders_add_button")) { showingEditor = true }
                 .buttonStyle(.genkiPrimary)
                 .frame(maxWidth: 220)
         }

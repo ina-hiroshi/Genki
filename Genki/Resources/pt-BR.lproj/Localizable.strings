@@ -1,0 +1,200 @@
+/* Common */
+"cancel" = "Cancelar";
+"save" = "Salvar";
+"family" = "Família";
+"default_family_name" = "Minha família";
+"default_reminder_title" = "Lembrete";
+
+/* MainTabView */
+"tab_home" = "Início";
+"tab_reminders" = "Lembretes";
+"tab_check_in" = "Check-in";
+"tab_family" = "Família";
+
+/* HomeView */
+"greeting_morning" = "Bom dia";
+"greeting_afternoon" = "Olá";
+"greeting_evening" = "Boa noite";
+"greeting_with_name_format" = "%1$@, %2$@";
+"greeting_without_name_format" = "%@!";
+"home_sos_a11y" = "SOS de emergência";
+"home_family_today" = "Família hoje";
+"home_today_reminders" = "Lembretes de hoje";
+"home_no_reminders" = "Ainda não há lembretes. Adicione um na aba Lembretes.";
+
+/* CheckInHeroButton */
+"check_in_send" = "Reportar como está";
+"check_in_done" = "Reportado hoje";
+"check_in_hint_done" = "Toque para atualizar o reporte";
+"check_in_hint_tap" = "Toque para reportar à família";
+
+"check_in_sheet_title" = "Como você está hoje?";
+"check_in_sheet_nav_title" = "Check-in de bem-estar";
+"check_in_note_placeholder" = "Nota breve (opcional)";
+"check_in_note_toggle" = "Adicionar nota";
+"check_in_send_button" = "Enviar à família";
+"check_in_update_button" = "Atualizar reporte";
+
+"genki_level_great" = "Muito bem";
+"genki_level_okay" = "Normal";
+"genki_level_rough" = "Um pouco mal";
+"genki_level_great_short" = "Bem";
+"genki_level_okay_short" = "Normal";
+"genki_level_rough_short" = "Mal";
+"genki_level_great_detail" = "Como sempre, estou bem";
+"genki_level_okay_detail" = "Sem problemas importantes";
+"genki_level_rough_detail" = "Por favor, veja como estou";
+"genki_level_picker_title" = "Nível de bem-estar";
+
+/* CheckInView */
+"check_in_today_family" = "Família hoje";
+"check_in_none_yet" = "Ninguém fez check-in ainda.";
+"check_in_member_sent_format" = "%1$@ reportou %2$@";
+"check_in_reaction_a11y" = "Enviar reação";
+
+/* RemindersView */
+"reminders_add_a11y" = "Adicionar lembrete";
+"reminders_empty_title" = "Adicione um lembrete";
+"reminders_empty_detail" = "Medicação, caminhadas, hidratação e mais, com a família.";
+"reminders_add_button" = "Adicionar";
+"reminder_row_format" = "%1$@ · %2$@";
+"reminder_repeating_suffix" = " · Repetir";
+
+/* ReminderEditView */
+"reminder_edit_title" = "Lembrete";
+"reminder_section_content" = "Conteúdo";
+"reminder_title_placeholder" = "ex.: Remédio";
+"reminder_section_owner" = "Responsável";
+"reminder_owner_picker" = "Responsável";
+"reminder_owner_unset" = "Não atribuído";
+"reminder_section_time" = "Horário";
+"reminder_time_picker" = "Horário";
+"reminder_weekday_a11y_format" = "Dia %@";
+
+/* ReminderRowView */
+"reminder_complete" = "Concluído";
+"reminder_complete_hint_format" = "Marcar %@ como feito e avisar a família";
+
+/* FamilyView */
+"family_members_section" = "Membros";
+"family_you" = "Você";
+"family_invite_section" = "Convidar família";
+"family_share_preparing" = "Preparando link…";
+"family_share_link" = "Enviar link de convite";
+"family_invite_detail" = "Quem receber o link pode entrar no Genki. Só convidados veem o grupo.";
+"family_privacy_section" = "Privacidade";
+"family_privacy_shared" = "Só conclusões, check-ins e reações são compartilhados.";
+"family_privacy_location" = "Sem localização. O histórico é grátis para sempre.";
+"family_data_section" = "Dados e conta";
+"family_no_account" = "Genki não exige cadastro com e-mail. Seu grupo e histórico ficam no dispositivo e no iCloud ao compartilhar.";
+"family_delete_all" = "Excluir todos os dados";
+"family_delete_confirm_title" = "Excluir todos os dados?";
+"family_delete_confirm_button" = "Excluir";
+"family_delete_confirm_message" = "Grupo, lembretes, check-ins e histórico serão removidos deste dispositivo e você voltará à tela inicial. Com iCloud, também pode excluir em Ajustes.";
+"family_share_error_simulator" = "Links de convite exigem iCloud. No simulador, adicione GENKI_ENABLE_CLOUDKIT=1 ao esquema do Xcode.";
+"family_share_error_format" = "Falha ao preparar compartilhamento (v%1$@ %2$@): %3$@";
+"family_share_no_url" = "Não foi possível obter o link. Tente novamente.";
+"family_share_message_format" = "Participe do nosso grupo familiar Genki “%@”";
+
+/* SOSView */
+"sos_emergency" = "SOS de emergência";
+"sos_description" = "Avisaremos a família um por um.\nContinuaremos até alguém responder.";
+"sos_sent" = "Família avisada";
+"sos_stop" = "Parar SOS";
+"sos_send" = "Enviar SOS";
+"sos_critical_alerts_note" = "Alertas críticos que ignoram Não perturbe estarão disponíveis após aprovação da Apple.";
+"sos_title" = "SOS";
+
+/* OnboardingIntroPager */
+"onboarding_welcome_title" = "Bem-vindo ao Genki";
+"onboarding_welcome_subtitle" = "Conectados e tranquilos";
+"onboarding_welcome_detail" = "Compartilhe o \"Estou bem\" diário com familiares que moram longe.";
+"onboarding_reminders_title" = "Lembretes que cuidam";
+"onboarding_reminders_subtitle" = "Remédio, caminhada, água";
+"onboarding_reminders_detail" = "Registre tarefas importantes e confirme conclusões em família.";
+"onboarding_checkin_title" = "Check-in de bem-estar";
+"onboarding_checkin_subtitle" = "Um sinal diário de tranquilidade";
+"onboarding_checkin_detail" = "Escolha como está e reporte à família. Com o alarme, escolha na notificação ao acordar.";
+"onboarding_reactions_title" = "Reações que conectam";
+"onboarding_reactions_subtitle" = "Stickers para expressar carinho";
+"onboarding_reactions_detail" = "Reaja a conclusões e check-ins. Pequenos \"obrigados\" fortalecem a família.";
+"onboarding_create_family" = "Crie sua família";
+"onboarding_setup_detail" = "Informe o nome da família e seus dados.";
+"field_family_name" = "Nome da família";
+"field_your_name" = "Seu nome";
+"name_placeholder_mother" = "ex.: Mãe / Sakura";
+"name_placeholder_father" = "ex.: Pai / Taro";
+"field_your_color" = "Sua cor";
+"onboarding_after_create" = "Depois, convide pela aba Família. Você pode excluir seus dados a qualquer momento.";
+"color_a11y_format" = "Cor %d";
+
+/* OnboardingView */
+"onboarding_start_family" = "Começar família";
+"onboarding_next" = "Próximo";
+"onboarding_to_setup" = "Configurar";
+"onboarding_skip" = "Pular";
+
+/* JoinOnboardingView */
+"join_family_format" = "Entrar em \"%@\"";
+"join_setup_detail" = "Configure seu nome e cor.";
+"join_button" = "Entrar";
+"join_error_no_share" = "Convite não encontrado. Abra o link novamente.";
+
+/* MemberAvatar */
+"member_checked_in_a11y_format" = "%@, check-in feito hoje";
+"member_checked_in_level_a11y_format" = "%1$@ reportou %2$@";
+"member_not_checked_in_a11y_format" = "%@, sem check-in";
+
+/* ReactionPicker */
+"reaction_from_a11y_format" = "%1$@ enviou %2$@";
+
+/* Shared ReactionKind */
+"reaction_heart" = "Coração";
+"reaction_thumbs_up" = "Joinha";
+"reaction_smile" = "Sorriso";
+"reaction_clap" = "Palmas";
+"reaction_star" = "Estrela";
+
+/* NotificationManager */
+"notif_reminder_body" = "Está quase na hora";
+"notif_completion_title_format" = "%1$@ concluiu %2$@";
+"notif_completion_body" = "Envie uma reação para animar";
+"notif_check_in_title_format" = "%1$@ reportou %2$@";
+"notif_check_in_body_great" = "Tudo certo hoje";
+"notif_check_in_body_okay" = "Parece estar bem hoje";
+"notif_check_in_body_rough" = "Por favor, veja como está";
+"notif_check_in_prompt_title" = "Como você está hoje?";
+"notif_check_in_prompt_body" = "Toque um botão para reportar à família";
+"notif_reaction_title_format" = "Reação de %@";
+"notif_sos_title_format" = "🆘 SOS de %@";
+"notif_sos_body" = "Entre em contato agora";
+
+/* GenkiCloudError */
+"error_icloud_unavailable" = "Entre no iCloud. Ajustes → Apple ID → iCloud.";
+"error_share_not_found" = "Link não encontrado. Tente novamente.";
+
+/* CloudSharingSheet */
+"share_sheet_title" = "Grupo familiar Genki";
+
+/* CheckInIntent */
+"intent_check_in_title" = "Reportar bem-estar";
+"intent_check_in_description" = "Envie um check-in à família com o nível selecionado.";
+"intent_prompt_check_in_title" = "Escolher nível de bem-estar";
+"intent_prompt_check_in_description" = "Mostra uma notificação para escolher seu nível. Para automações ao acordar.";
+"intent_success_format" = "Reportou \"%@\" à família.";
+"intent_prompt_success" = "Escolha seu nível na notificação.";
+"shortcut_check_in_title" = "Reportar bem-estar";
+"shortcut_prompt_check_in_title" = "Escolher nível";
+"intent_no_family" = "Primeiro crie um grupo familiar no Genki.";
+"intent_already_sent" = "Você já fez check-in hoje.";
+
+/* GenkiShortcuts */
+
+
+/* SampleData / Placeholder */
+"sample_member_mom" = "Mãe";
+"sample_member_dad" = "Pai";
+"sample_member_sakura" = "Sakura";
+"sample_reminder_medicine" = "Remédio";
+"sample_reminder_walk" = "Caminhada";
+"sample_reminder_water" = "Beber água";

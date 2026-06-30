@@ -41,11 +41,11 @@ public enum ReactionKind: String, Codable, CaseIterable, Identifiable, Sendable 
     /// アクセシビリティ用の読み上げラベル。
     public var accessibilityLabel: String {
         switch self {
-        case .heart: return "ハート"
-        case .thumbsUp: return "いいね"
-        case .smile: return "笑顔"
-        case .clap: return "拍手"
-        case .star: return "スター"
+        case .heart: return String(localized: "reaction_heart")
+        case .thumbsUp: return String(localized: "reaction_thumbs_up")
+        case .smile: return String(localized: "reaction_smile")
+        case .clap: return String(localized: "reaction_clap")
+        case .star: return String(localized: "reaction_star")
         }
     }
 }

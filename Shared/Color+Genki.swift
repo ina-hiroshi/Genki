@@ -78,6 +78,8 @@ public enum GenkiPalette {
 
     public static let done = Color(hex: "2FBF71")
     public static let sos = Color(hex: "FF5A5F")
+    /// 元気度「ちょっとつらい」用（SOS 赤とは別の落ち着いたトーン）。
+    public static let genkiRough = Color(hex: "E8A04A")
 
     /// メンバーカラー（淡め・控えめに使う）。
     public static let memberColors: [Color] = [

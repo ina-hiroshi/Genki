@@ -1,0 +1,19 @@
+/* FamilyStatusWidget */
+"widget_family_today" = "Família hoje";
+"widget_description" = "Check-ins e lembretes da família num relance.";
+
+/* Shared */
+"family" = "Família";
+"reaction_heart" = "Coração";
+"reaction_thumbs_up" = "Joinha";
+"reaction_smile" = "Sorriso";
+"reaction_clap" = "Palmas";
+"reaction_star" = "Estrela";
+
+/* SampleData / Placeholder */
+"default_family_name" = "Minha família";
+"sample_member_mom" = "Mãe";
+"sample_member_dad" = "Pai";
+"sample_member_sakura" = "Sakura";
+"sample_reminder_medicine" = "Remédio";
+"sample_reminder_walk" = "Caminhada";

@@ -30,7 +30,7 @@ struct HomeView: View {
                         Image(systemName: "sos")
                             .foregroundStyle(GenkiPalette.sos)
                     }
-                    .accessibilityLabel("緊急SOS")
+                    .accessibilityLabel(String(localized: "home_sos_a11y"))
                 }
             }
         }
@@ -49,27 +49,38 @@ struct HomeView: View {
 
     private var greetingText: String {
         let hour = Calendar.current.component(.hour, from: .now)
-        let part = hour < 11 ? "おはよう" : (hour < 18 ? "こんにちは" : "こんばんは")
+        let partKey = hour < 11 ? "greeting_morning" : (hour < 18 ? "greeting_afternoon" : "greeting_evening")
+        let part = String(localized: String.LocalizationValue(partKey))
         let name = CurrentUser.myName
-        return name.isEmpty ? "\(part)！" : "\(part)、\(name)"
+        if name.isEmpty {
+            return String(format: String(localized: "greeting_without_name_format"), part)
+        }
+        return String(format: String(localized: "greeting_with_name_format"), part, name)
     }
 
     @ViewBuilder
     private var familyToday: some View {
         if let family, !family.sortedMembers.isEmpty {
             VStack(alignment: .leading, spacing: 12) {
-                Text("家族の今日").font(GenkiFont.headline()).foregroundStyle(GenkiPalette.text)
+                Text(String(localized: "home_family_today")).font(GenkiFont.headline()).foregroundStyle(GenkiPalette.text)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
                         ForEach(family.sortedMembers) { member in
                             VStack(spacing: 6) {
                                 MemberAvatar(name: member.name,
                                              colorIndex: member.colorIndex,
-                                             checkedIn: member.hasCheckedIn())
+                                             checkedIn: member.hasCheckedIn(),
+                                             genkiLevel: member.todaysGenkiLevel())
                                 Text(member.name)
                                     .font(GenkiFont.caption())
                                     .foregroundStyle(GenkiPalette.muted)
                                     .lineLimit(1)
+                                if let level = member.todaysGenkiLevel() {
+                                    Text(level.shortLabel)
+                                        .font(GenkiFont.caption())
+                                        .foregroundStyle(level.tint)
+                                        .lineLimit(1)
+                                }
                             }
                         }
                     }
@@ -83,9 +94,9 @@ struct HomeView: View {
     private var todayReminders: some View {
         let reminders = (family?.sortedReminders ?? []).filter { $0.isScheduled() }
         VStack(alignment: .leading, spacing: 12) {
-            Text("今日のリマインド").font(GenkiFont.headline()).foregroundStyle(GenkiPalette.text)
+            Text(String(localized: "home_today_reminders")).font(GenkiFont.headline()).foregroundStyle(GenkiPalette.text)
             if reminders.isEmpty {
-                Text("まだリマインドがありません。「リマインダー」タブから追加できます。")
+                Text(String(localized: "home_no_reminders"))
                     .font(GenkiFont.callout())
                     .foregroundStyle(GenkiPalette.muted)
                     .frame(maxWidth: .infinity, alignment: .leading)

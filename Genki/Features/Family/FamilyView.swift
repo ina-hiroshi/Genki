@@ -16,7 +16,7 @@ struct FamilyView: View {
         NavigationStack {
             List {
                 if let family {
-                    Section("メンバー") {
+                    Section(String(localized: "family_members_section")) {
                         ForEach(family.sortedMembers) { member in
                             HStack(spacing: 12) {
                                 MemberAvatar(name: member.name, colorIndex: member.colorIndex, size: 40)
@@ -24,7 +24,7 @@ struct FamilyView: View {
                                     .font(GenkiFont.body())
                                     .foregroundStyle(GenkiPalette.text)
                                 if member.isMe {
-                                    Text("あなた")
+                                    Text(String(localized: "family_you"))
                                         .font(GenkiFont.caption())
                                         .foregroundStyle(GenkiPalette.muted)
                                 }
@@ -33,72 +33,59 @@ struct FamilyView: View {
                     }
                 }
 
-                Section("家族を招待") {
+                Section(String(localized: "family_invite_section")) {
                     Button {
                         inviteFamily()
                     } label: {
                         if isPreparingShare {
-                            Label("共有を準備中…", systemImage: "hourglass")
+                            Label(String(localized: "family_share_preparing"), systemImage: "hourglass")
                         } else {
-                            Label("共有リンクを送る", systemImage: "square.and.arrow.up")
+                            Label(String(localized: "family_share_link"), systemImage: "square.and.arrow.up")
                         }
                     }
                     .disabled(isPreparingShare || family == nil)
                     if let shareError {
                         Text(shareError).font(GenkiFont.caption()).foregroundStyle(GenkiPalette.sos)
                     }
-                    Text("リンクを受け取った家族がGenkiに参加できます。招待した人だけが見られます。")
+                    Text(String(localized: "family_invite_detail"))
                         .font(GenkiFont.caption())
                         .foregroundStyle(GenkiPalette.muted)
                 }
 
-                Section("プライバシー") {
-                    Label("共有されるのは、リマインドの完了・チェックイン・リアクションだけです。", systemImage: "lock.shield")
+                Section(String(localized: "family_privacy_section")) {
+                    Label(String(localized: "family_privacy_shared"), systemImage: "lock.shield")
                         .font(GenkiFont.caption())
-                    Label("位置情報は使いません。履歴はずっと無料で見られます。", systemImage: "checkmark.seal")
+                    Label(String(localized: "family_privacy_location"), systemImage: "checkmark.seal")
                         .font(GenkiFont.caption())
                 }
 
-                Section("データとアカウント") {
-                    Text("Genkiにメールアドレス等のアカウント登録はありません。家族グループ・履歴は端末とiCloud（共有時）に保存されます。")
+                Section(String(localized: "family_data_section")) {
+                    Text(String(localized: "family_no_account"))
                         .font(GenkiFont.caption())
                         .foregroundStyle(GenkiPalette.muted)
 
                     Button(role: .destructive) {
                         showDeleteConfirmation = true
                     } label: {
-                        Label("すべてのデータを削除", systemImage: "trash")
+                        Label(String(localized: "family_delete_all"), systemImage: "trash")
                     }
                 }
             }
             .genkiListStyle()
             .genkiScreenBackground()
-            .navigationTitle(family?.name ?? "家族")
-            .fullScreenCover(item: $shareSheetItem) { item in
-                CloudSharingSheet(
-                    share: item.share,
-                    container: item.container,
-                    onDismiss: { shareSheetItem = nil },
-                    onError: { error in
-                        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
-                        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
-                        shareError = """
-                        共有の準備に失敗しました (v\(version) \(build)): \
-                        \(GenkiCloudError.friendlyMessage(for: error))
-                        """
-                    }
-                )
-                .ignoresSafeArea()
+            .navigationTitle(family?.name ?? String(localized: "family"))
+            .sheet(item: $shareSheetItem) { item in
+                ActivityShareSheet(items: item.activityItems, onDismiss: { shareSheetItem = nil })
             }
             .confirmationDialog(
-                "すべてのデータを削除しますか？",
+                String(localized: "family_delete_confirm_title"),
                 isPresented: $showDeleteConfirmation,
                 titleVisibility: .visible
             ) {
-                Button("削除する", role: .destructive, action: deleteAllData)
-                Button("キャンセル", role: .cancel) {}
+                Button(String(localized: "family_delete_confirm_button"), role: .destructive, action: deleteAllData)
+                Button(String(localized: "cancel"), role: .cancel) {}
             } message: {
-                Text("家族グループ・リマインド・チェックイン・履歴がこの端末から削除され、最初の画面に戻ります。iCloud共有中のデータは、設定アプリのiCloudからも削除できます。")
+                Text(String(localized: "family_delete_confirm_message"))
             }
         }
     }
@@ -106,7 +93,7 @@ struct FamilyView: View {
     private func inviteFamily() {
         guard let family else { return }
         guard FeatureFlags.cloudKitEnabled else {
-            shareError = "共有（招待リンク）は、iCloudを設定した端末で利用できます。シミュレーターでは Xcode の Run 設定に GENKI_ENABLE_CLOUDKIT=1 を追加してください。"
+            shareError = String(localized: "family_share_error_simulator")
             return
         }
         shareError = nil
@@ -115,16 +102,21 @@ struct FamilyView: View {
             defer { isPreparingShare = false }
             do {
                 let controller = ShareController()
-                let (share, container) = try await controller.prepareShare(for: family)
+                let (share, _) = try await controller.prepareShare(for: family)
                 try? context.save()
-                shareSheetItem = ShareSheetItem(share: share, container: container)
+                guard let url = share.url else {
+                    shareError = String(localized: "family_share_no_url")
+                    return
+                }
+                let message = String(format: String(localized: "family_share_message_format"), family.name)
+                shareSheetItem = ShareSheetItem(url: url, message: message)
             } catch {
                 let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
                 let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
-                shareError = """
-                共有の準備に失敗しました (v\(version) \(build)): \
-                \(GenkiCloudError.friendlyMessage(for: error))
-                """
+                shareError = String(
+                    format: String(localized: "family_share_error_format"),
+                    version, build, GenkiCloudError.friendlyMessage(for: error)
+                )
             }
         }
     }

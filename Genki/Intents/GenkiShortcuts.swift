@@ -1,18 +1,27 @@
 import AppIntents
 
 /// Genki が提供する App Shortcut。
-/// 「Hey Siri、元気だよ」や、ショートカット/オートメーションから呼び出せる。
 struct GenkiShortcuts: AppShortcutsProvider {
+    @AppShortcutsBuilder
     static var appShortcuts: [AppShortcut] {
+        AppShortcut(
+            intent: PromptCheckInIntent(),
+            phrases: [
+                "\(.applicationName)で元気度を選んでチェックイン",
+                "\(.applicationName)のチェックイン",
+                "チェックインを\(.applicationName)で送る"
+            ],
+            shortTitle: LocalizedStringResource("shortcut_prompt_check_in_title"),
+            systemImageName: "sun.max.fill"
+        )
         AppShortcut(
             intent: CheckInIntent(),
             phrases: [
                 "\(.applicationName)で元気だよを送る",
-                "\(.applicationName)に元気だよ",
-                "元気だよを\(.applicationName)で送る"
+                "\(.applicationName)に元気だよ"
             ],
-            shortTitle: "元気だよ",
-            systemImageName: "sun.max.fill"
+            shortTitle: LocalizedStringResource("shortcut_check_in_title"),
+            systemImageName: "sun.max"
         )
     }
 }

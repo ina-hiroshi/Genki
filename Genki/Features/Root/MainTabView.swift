@@ -5,16 +5,16 @@ struct MainTabView: View {
     var body: some View {
         TabView {
             HomeView()
-                .tabItem { Label("ホーム", systemImage: "house") }
+                .tabItem { Label(String(localized: "tab_home"), systemImage: "house") }
 
             RemindersView()
-                .tabItem { Label("リマインダー", systemImage: "checklist") }
+                .tabItem { Label(String(localized: "tab_reminders"), systemImage: "checklist") }
 
             CheckInView()
-                .tabItem { Label("チェックイン", systemImage: "sun.max") }
+                .tabItem { Label(String(localized: "tab_check_in"), systemImage: "sun.max") }
 
             FamilyView()
-                .tabItem { Label("家族", systemImage: "person.2") }
+                .tabItem { Label(String(localized: "tab_family"), systemImage: "person.2") }
         }
         .task { await CloudKitBootstrap.activateIfNeeded() }
     }

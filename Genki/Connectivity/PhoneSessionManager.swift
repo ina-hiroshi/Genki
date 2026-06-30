@@ -34,8 +34,9 @@ final class PhoneSessionManager: NSObject, WCSessionDelegate {
         Task { @MainActor in
             guard let context = container?.mainContext,
                   let me = FamilyActions.currentMember(in: context) else { return }
-            FamilyActions.checkIn(member: me, in: context)
-            NotificationManager.shared.notifyCheckIn(memberName: me.name)
+            let levelValue = message["level"] as? Int ?? GenkiLevel.okay.rawValue
+            let level = GenkiLevel(rawValue: levelValue) ?? .okay
+            FamilyActions.checkIn(member: me, level: level, in: context)
         }
     }
 

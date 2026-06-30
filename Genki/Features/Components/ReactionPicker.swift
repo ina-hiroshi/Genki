@@ -33,7 +33,7 @@ struct ReactionRow: View {
                 Image(systemName: reaction.kind.symbolName)
                     .font(.system(size: 13))
                     .foregroundStyle(GenkiPalette.primary)
-                    .accessibilityLabel("\(reaction.authorName)から\(reaction.kind.accessibilityLabel)")
+                    .accessibilityLabel(String(format: String(localized: "reaction_from_a11y_format"), reaction.authorName, reaction.kind.accessibilityLabel))
             }
         }
     }

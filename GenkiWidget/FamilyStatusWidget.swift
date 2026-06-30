@@ -10,8 +10,8 @@ struct FamilyStatusWidget: Widget {
             FamilyStatusEntryView(entry: entry)
                 .containerBackground(GenkiPalette.background, for: .widget)
         }
-        .configurationDisplayName("家族の今日")
-        .description("家族のチェックインとリマインドの状態をひと目で。")
+        .configurationDisplayName(String(localized: "widget_family_today"))
+        .description(String(localized: "widget_description"))
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -93,7 +93,9 @@ private struct WidgetAvatar: View {
                         .foregroundStyle(GenkiPalette.text)
                 )
             if member.checkedInToday {
-                Circle().fill(GenkiPalette.done).frame(width: 9, height: 9)
+                Circle()
+                    .fill(member.level?.tint ?? GenkiPalette.done)
+                    .frame(width: 9, height: 9)
                     .overlay(Circle().stroke(.white, lineWidth: 1.5))
             }
         }

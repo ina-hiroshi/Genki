@@ -7,9 +7,9 @@ enum GenkiCloudError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .iCloudUnavailable:
-            return "iCloudにサインインしてください。設定アプリ → Apple ID → iCloud で確認できます。"
+            return String(localized: "error_icloud_unavailable")
         case .shareNotFound:
-            return "共有リンクが見つかりませんでした。もう一度お試しください。"
+            return String(localized: "error_share_not_found")
         }
     }
 
@@ -27,7 +27,7 @@ enum GenkiCloudError: LocalizedError {
             var lines = ["CK \(ckError.code.rawValue): \(ckError.localizedDescription)"]
             if ckError.code == .invalidArguments,
                ckError.localizedDescription.contains("cloudkit.share") {
-                lines.append("ヒント: cloudkit.share 型が Production に未デプロイです。TestFlight 1.0.25(Development)で共有を1回成功させ、CloudKit Dashboard から Deploy Schema Changes… を実行してください。")
+                lines.append("ヒント: cloudkit.share 型が Production に未デプロイです。Mac で ./scripts/bootstrap-share-via-simulator.sh を実行し、CloudKit Dashboard から Deploy Schema Changes… を実行してください（iPhone の USB 接続は不要）。")
             }
             if ckError.code == .partialFailure || ckError.localizedDescription.contains("Atomic failure") {
                 lines.append("ヒント: 共有レコードの保存に失敗しています。上記の cloudkit.share デプロイ手順を先に実行してください。")

@@ -1,0 +1,30 @@
+/* WatchHomeView */
+"watch_sent" = "보냈습니다";
+"watch_check_in_prompt" = "오늘 컨디션";
+"watch_family_today" = "오늘의 가족";
+
+"genki_level_great" = "아주 좋아요";
+"genki_level_okay" = "보통";
+"genki_level_rough" = "조금 힘들어요";
+"genki_level_great_short" = "좋음";
+"genki_level_okay_short" = "보통";
+"genki_level_rough_short" = "힘듦";
+"genki_level_great_detail" = "평소처럼";
+"genki_level_okay_detail" = "문제 없음";
+"genki_level_rough_detail" = "상태 확인";
+
+/* Shared */
+"family" = "가족";
+"reaction_heart" = "하트";
+"reaction_thumbs_up" = "좋아요";
+"reaction_smile" = "웃음";
+"reaction_clap" = "박수";
+"reaction_star" = "별";
+
+/* SampleData / Placeholder */
+"default_family_name" = "우리 가족";
+"sample_member_mom" = "엄마";
+"sample_member_dad" = "아빠";
+"sample_member_sakura" = "사쿠라";
+"sample_reminder_medicine" = "약";
+"sample_reminder_walk" = "산책";

@@ -6,6 +6,7 @@ import UserNotifications
 @main
 struct GenkiApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @State private var bootstrapState = ShareBootstrapState.shared
 
     let container = GenkiModelContainer.makeShared()
 
@@ -18,6 +19,7 @@ struct GenkiApp: App {
             RootView()
                 .fontDesign(.rounded)
                 .tint(GenkiPalette.primary)
+                .accessibilityIdentifier(bootstrapState.accessibilityID)
                 .task { await bootstrap() }
         }
         .modelContainer(container)
@@ -28,6 +30,7 @@ struct GenkiApp: App {
     private func bootstrap() async {
         #if DEBUG
         seedIfRequested()
+        await bootstrapShareIfRequested()
         #endif
         PhoneSessionManager.shared.configure(container: container)
         await NotificationManager.shared.requestAuthorization()
@@ -49,6 +52,41 @@ struct GenkiApp: App {
             CurrentUser.myName = me.name
         }
         CurrentUser.isOnboarded = true
+    }
+
+    /// GENKI_BOOTSTRAP_SHARE=1 で Development に cloudkit.share 型を生成（UI 操作不要）。
+    @MainActor
+    private func bootstrapShareIfRequested() async {
+        guard ProcessInfo.processInfo.environment["GENKI_BOOTSTRAP_SHARE"] == "1" else { return }
+        guard FeatureFlags.cloudKitEnabled else {
+            ShareBootstrapState.shared.markFailure("CloudKit が無効です")
+            return
+        }
+
+        ShareBootstrapState.shared.markPending()
+        let context = container.mainContext
+        let count = (try? context.fetchCount(FetchDescriptor<FamilyGroup>())) ?? 0
+        if count == 0 {
+            SampleData.seed(into: context)
+            if let me = FamilyActions.currentMember(in: context) {
+                CurrentUser.myMemberID = me.id
+                CurrentUser.myName = me.name
+            }
+            CurrentUser.isOnboarded = true
+        }
+
+        guard let family = try? context.fetch(FetchDescriptor<FamilyGroup>()).first else {
+            ShareBootstrapState.shared.markFailure("家族グループがありません")
+            return
+        }
+
+        do {
+            _ = try await ShareController().prepareShare(for: family)
+            try? context.save()
+            ShareBootstrapState.shared.markSuccess()
+        } catch {
+            ShareBootstrapState.shared.markFailure(GenkiCloudError.technicalDetail(for: error))
+        }
     }
     #endif
 }
@@ -95,5 +133,13 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
         [.banner, .sound]
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                didReceive response: UNNotificationResponse) async {
+        guard let level = GenkiLevel.fromNotificationActionID(response.actionIdentifier) else { return }
+        await MainActor.run {
+            CheckInNotificationHandler.perform(level: level, fromAlarm: true)
+        }
     }
 }

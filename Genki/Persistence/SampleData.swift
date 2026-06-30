@@ -5,24 +5,42 @@ import SwiftData
 enum SampleData {
     @MainActor
     static func seed(into context: ModelContext) {
-        let family = FamilyGroup(name: "わたしの家族")
+        let family = FamilyGroup(name: String(localized: "default_family_name"))
         context.insert(family)
 
-        let mom = Member(name: "お母さん", colorIndex: 0, isMe: true)
-        let dad = Member(name: "お父さん", colorIndex: 1)
-        let sakura = Member(name: "さくら", colorIndex: 2)
+        let mom = Member(name: String(localized: "sample_member_mom"), colorIndex: 0, isMe: true)
+        let dad = Member(name: String(localized: "sample_member_dad"), colorIndex: 1)
+        let sakura = Member(name: String(localized: "sample_member_sakura"), colorIndex: 2)
         for m in [mom, dad, sakura] {
             m.family = family
             context.insert(m)
         }
 
-        let medicine = Reminder(title: "おくすり", symbolName: "pills", hour: 8, minute: 0, weekdays: [1, 2, 3, 4, 5, 6, 7])
+        let medicine = Reminder(
+            title: String(localized: "sample_reminder_medicine"),
+            symbolName: "pills",
+            hour: 8,
+            minute: 0,
+            weekdays: [1, 2, 3, 4, 5, 6, 7]
+        )
         medicine.owner = mom
         medicine.family = family
-        let walk = Reminder(title: "散歩", symbolName: "figure.walk", hour: 9, minute: 0, weekdays: [1, 2, 3, 4, 5, 6, 7])
+        let walk = Reminder(
+            title: String(localized: "sample_reminder_walk"),
+            symbolName: "figure.walk",
+            hour: 9,
+            minute: 0,
+            weekdays: [1, 2, 3, 4, 5, 6, 7]
+        )
         walk.owner = dad
         walk.family = family
-        let water = Reminder(title: "水分をとる", symbolName: "drop", hour: 11, minute: 0, weekdays: [1, 2, 3, 4, 5, 6, 7])
+        let water = Reminder(
+            title: String(localized: "sample_reminder_water"),
+            symbolName: "drop",
+            hour: 11,
+            minute: 0,
+            weekdays: [1, 2, 3, 4, 5, 6, 7]
+        )
         water.owner = sakura
         water.family = family
         for r in [medicine, walk, water] { context.insert(r) }
@@ -30,11 +48,15 @@ enum SampleData {
         // 今日の完了ログとチェックインを少しだけ。
         let doneMedicine = CompletionLog(reminder: medicine, member: mom)
         context.insert(doneMedicine)
-        let reaction = Reaction(kind: .thumbsUp, authorName: "さくら", completion: doneMedicine)
+        let reaction = Reaction(
+            kind: .thumbsUp,
+            authorName: String(localized: "sample_member_sakura"),
+            completion: doneMedicine
+        )
         context.insert(reaction)
 
-        let momCheckIn = CheckIn(member: mom)
-        let sakuraCheckIn = CheckIn(member: sakura)
+        let momCheckIn = CheckIn(level: GenkiLevel.great.rawValue, member: mom)
+        let sakuraCheckIn = CheckIn(level: GenkiLevel.okay.rawValue, member: sakura)
         context.insert(momCheckIn)
         context.insert(sakuraCheckIn)
 

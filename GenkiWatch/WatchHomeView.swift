@@ -1,27 +1,43 @@
 import SwiftUI
 
-/// Watch のホーム: 手元から「元気だよ」、家族の状態をちらっと確認。
+/// Watch のホーム: 手元から体調チェックイン、家族の状態をちらっと確認。
 struct WatchHomeView: View {
     @EnvironmentObject private var session: WatchSessionManager
+    @State private var selectedLevel: GenkiLevel = .okay
     @State private var sent = false
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 12) {
-                Button {
-                    session.sendCheckIn()
-                    sent = true
-                } label: {
-                    Label(sent ? "送りました" : "元気だよ",
-                          systemImage: sent ? "checkmark.circle.fill" : "sun.max.fill")
+            VStack(spacing: 10) {
+                if sent {
+                    Label(String(localized: "watch_sent"), systemImage: "checkmark.circle.fill")
+                        .font(.system(.body, design: .rounded))
                         .frame(maxWidth: .infinity)
-                }
-                .tint(sent ? GenkiPalette.done : GenkiPalette.primary)
+                        .tint(GenkiPalette.done)
+                } else {
+                    Text(String(localized: "watch_check_in_prompt"))
+                        .font(.system(.caption, design: .rounded))
+                        .foregroundStyle(GenkiPalette.muted)
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
-                Text("家族の今日")
+                    ForEach(GenkiLevel.allCases.reversed()) { level in
+                        Button {
+                            selectedLevel = level
+                            session.sendCheckIn(level: level)
+                            sent = true
+                        } label: {
+                            Label(level.shortLabel, systemImage: level.symbolName)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .tint(level.tint)
+                    }
+                }
+
+                Text(String(localized: "watch_family_today"))
                     .font(.system(.caption, design: .rounded))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .foregroundStyle(GenkiPalette.muted)
+                    .padding(.top, 4)
 
                 ForEach(session.snapshot.members) { member in
                     HStack {
@@ -31,8 +47,13 @@ struct WatchHomeView: View {
                         Text(member.name)
                             .font(.system(.body, design: .rounded))
                         Spacer()
-                        Image(systemName: member.checkedInToday ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(member.checkedInToday ? GenkiPalette.done : GenkiPalette.muted)
+                        if let level = member.level {
+                            Image(systemName: level.symbolName)
+                                .foregroundStyle(level.tint)
+                        } else {
+                            Image(systemName: "circle")
+                                .foregroundStyle(GenkiPalette.muted)
+                        }
                     }
                 }
             }

@@ -37,6 +37,16 @@ final class Member {
 
     /// 今日チェックイン済みか。
     func hasCheckedIn(on day: Date = .now, calendar: Calendar = .current) -> Bool {
-        (checkIns ?? []).contains { calendar.isDate($0.date, inSameDayAs: day) }
+        todaysCheckIn(on: day, calendar: calendar) != nil
+    }
+
+    /// 指定日のチェックイン（同日は1件想定）。
+    func todaysCheckIn(on day: Date = .now, calendar: Calendar = .current) -> CheckIn? {
+        (checkIns ?? []).first { calendar.isDate($0.date, inSameDayAs: day) }
+    }
+
+    /// 今日の元気度。未チェックインなら nil。
+    func todaysGenkiLevel(on day: Date = .now, calendar: Calendar = .current) -> GenkiLevel? {
+        todaysCheckIn(on: day, calendar: calendar)?.genkiLevel
     }
 }

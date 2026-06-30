@@ -39,7 +39,7 @@ struct ReminderRowView: View {
                         Image(systemName: "face.smiling")
                             .foregroundStyle(GenkiPalette.primary)
                     }
-                    .accessibilityLabel("リアクションを送る")
+                    .accessibilityLabel(String(localized: "check_in_reaction_a11y"))
                 }
                 if showReactionPicker {
                     ReactionPicker { kind in
@@ -73,22 +73,22 @@ struct ReminderRowView: View {
     }
 
     private var ownerLine: String {
-        let owner = reminder.owner?.name ?? "家族"
-        return "\(owner)・\(reminder.timeText)"
+        let owner = reminder.owner?.name ?? String(localized: "family")
+        return String(format: String(localized: "reminder_row_format"), owner, reminder.timeText)
     }
 
     @ViewBuilder
     private var trailing: some View {
         if todaysCompletion != nil {
-            Label("完了", systemImage: "checkmark.circle.fill")
+            Label(String(localized: "reminder_complete"), systemImage: "checkmark.circle.fill")
                 .font(GenkiFont.callout().weight(.semibold))
                 .foregroundStyle(GenkiPalette.done)
         } else {
-            Button("完了") {
+            Button(String(localized: "reminder_complete")) {
                 complete()
             }
             .buttonStyle(.genkiQuiet)
-            .accessibilityHint("\(reminder.title)を完了にして家族に知らせます")
+            .accessibilityHint(String(format: String(localized: "reminder_complete_hint_format"), reminder.title))
         }
     }
 

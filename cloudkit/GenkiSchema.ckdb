@@ -22,6 +22,7 @@ DEFINE SCHEMA
         "___recordID"   REFERENCE QUERYABLE,
         memberName      STRING QUERYABLE,
         date            TIMESTAMP QUERYABLE,
+        level           INT64 QUERYABLE,
         GRANT WRITE TO "_creator",
         GRANT CREATE TO "_icloud",
         GRANT READ TO "_creator"

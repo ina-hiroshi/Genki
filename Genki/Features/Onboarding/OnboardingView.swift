@@ -6,7 +6,7 @@ struct OnboardingView: View {
     @Environment(\.modelContext) private var context
 
     @State private var page = 0
-    @State private var familyName = "わたしの家族"
+    @State private var familyName = String(localized: "default_family_name")
     @State private var myName = ""
     @State private var colorIndex = 0
 
@@ -41,17 +41,17 @@ struct OnboardingView: View {
     private var bottomBar: some View {
         VStack(spacing: 12) {
             if isSetupPage {
-                Button("家族をはじめる", action: createFamily)
+                Button(String(localized: "onboarding_start_family"), action: createFamily)
                     .buttonStyle(.genkiPrimary)
                     .disabled(myName.trimmingCharacters(in: .whitespaces).isEmpty)
             } else {
-                Button(page == setupPageIndex - 1 ? "設定へ" : "次へ") {
+                Button(page == setupPageIndex - 1 ? String(localized: "onboarding_to_setup") : String(localized: "onboarding_next")) {
                     withAnimation { page += 1 }
                 }
                 .buttonStyle(.genkiPrimary)
 
                 if page < setupPageIndex - 1 {
-                    Button("スキップ") {
+                    Button(String(localized: "onboarding_skip")) {
                         withAnimation { page = setupPageIndex }
                     }
                     .font(GenkiFont.callout())
@@ -62,7 +62,8 @@ struct OnboardingView: View {
     }
 
     private func createFamily() {
-        let family = FamilyGroup(name: familyName.isEmpty ? "わたしの家族" : familyName)
+        let defaultName = String(localized: "default_family_name")
+        let family = FamilyGroup(name: familyName.isEmpty ? defaultName : familyName)
         context.insert(family)
 
         let me = Member(name: myName.trimmingCharacters(in: .whitespaces), colorIndex: colorIndex, isMe: true)

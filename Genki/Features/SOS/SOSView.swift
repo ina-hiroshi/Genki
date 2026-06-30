@@ -23,20 +23,20 @@ struct SOSView: View {
                 .font(.system(size: 88))
                 .foregroundStyle(GenkiPalette.sos)
 
-            Text("緊急SOS")
+            Text(String(localized: "sos_emergency"))
                 .font(GenkiFont.largeTitle())
                 .foregroundStyle(GenkiPalette.text)
 
-            Text("家族に順番に知らせます。\n応答があるまで連絡を続けます。")
+            Text(String(localized: "sos_description"))
                 .font(GenkiFont.callout())
                 .foregroundStyle(GenkiPalette.muted)
                 .multilineTextAlignment(.center)
 
             if sent {
-                Label("家族に知らせました", systemImage: "checkmark.circle.fill")
+                Label(String(localized: "sos_sent"), systemImage: "checkmark.circle.fill")
                     .font(GenkiFont.headline())
                     .foregroundStyle(GenkiPalette.done)
-                Button("SOSを止める") {
+                Button(String(localized: "sos_stop")) {
                     EscalationManager.shared.cancel()
                     sent = false
                 }
@@ -45,14 +45,14 @@ struct SOSView: View {
                 Button {
                     sendSOS()
                 } label: {
-                    Text("SOSを送る")
+                    Text(String(localized: "sos_send"))
                 }
                 .buttonStyle(GenkiPrimaryButtonStyle(tint: GenkiPalette.sos))
                 .padding(.horizontal, 24)
             }
             Spacer()
 
-            Text("おやすみモードを突破する強い通知（Critical Alerts）は、Appleの承認後に有効になります。")
+            Text(String(localized: "sos_critical_alerts_note"))
                 .font(GenkiFont.caption())
                 .foregroundStyle(GenkiPalette.muted)
                 .multilineTextAlignment(.center)
@@ -60,12 +60,12 @@ struct SOSView: View {
         }
         .padding(20)
         .genkiScreenBackground()
-        .navigationTitle("SOS")
+        .navigationTitle(String(localized: "sos_title"))
         .navigationBarTitleDisplayMode(.inline)
     }
 
     private func sendSOS() {
-        let name = me?.name ?? "家族"
+        let name = me?.name ?? String(localized: "family")
         EscalationManager.shared.start(fromMemberName: name, chain: chain.isEmpty ? [name] : chain)
         sent = true
     }

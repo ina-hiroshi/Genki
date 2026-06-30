@@ -5,6 +5,7 @@ struct MemberAvatar: View {
     var name: String
     var colorIndex: Int
     var checkedIn: Bool = false
+    var genkiLevel: GenkiLevel? = nil
     var size: CGFloat = 56
 
     private var initial: String {
@@ -26,23 +27,50 @@ struct MemberAvatar: View {
                 )
 
             if checkedIn {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: size * 0.3))
-                    .foregroundStyle(GenkiPalette.done)
-                    .background(Circle().fill(.background))
-                    .accessibilityHidden(true)
+                statusBadge
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(checkedIn ? "\(name)、今日チェックイン済み" : "\(name)、未チェックイン")
+        .accessibilityLabel(accessibilityText)
+    }
+
+    @ViewBuilder
+    private var statusBadge: some View {
+        if let genkiLevel {
+            Image(systemName: genkiLevel.symbolName)
+                .font(.system(size: size * 0.28))
+                .foregroundStyle(genkiLevel.tint)
+                .background(Circle().fill(.background).padding(-2))
+                .accessibilityHidden(true)
+        } else {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: size * 0.3))
+                .foregroundStyle(GenkiPalette.done)
+                .background(Circle().fill(.background))
+                .accessibilityHidden(true)
+        }
+    }
+
+    private var accessibilityText: String {
+        if checkedIn, let genkiLevel {
+            return String(
+                format: String(localized: "member_checked_in_level_a11y_format"),
+                name,
+                genkiLevel.label
+            )
+        }
+        if checkedIn {
+            return String(format: String(localized: "member_checked_in_a11y_format"), name)
+        }
+        return String(format: String(localized: "member_not_checked_in_a11y_format"), name)
     }
 }
 
 #Preview {
     HStack {
-        MemberAvatar(name: "お母さん", colorIndex: 0, checkedIn: true)
+        MemberAvatar(name: "お母さん", colorIndex: 0, checkedIn: true, genkiLevel: .great)
         MemberAvatar(name: "お父さん", colorIndex: 1, checkedIn: false)
-        MemberAvatar(name: "さくら", colorIndex: 2, checkedIn: true)
+        MemberAvatar(name: "さくら", colorIndex: 2, checkedIn: true, genkiLevel: .rough)
     }
     .padding()
 }

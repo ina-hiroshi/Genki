@@ -1,0 +1,19 @@
+/* FamilyStatusWidget */
+"widget_family_today" = "오늘의 가족";
+"widget_description" = "가족의 체크인과 리마인더 상태를 한눈에.";
+
+/* Shared */
+"family" = "가족";
+"reaction_heart" = "하트";
+"reaction_thumbs_up" = "좋아요";
+"reaction_smile" = "웃음";
+"reaction_clap" = "박수";
+"reaction_star" = "별";
+
+/* SampleData / Placeholder */
+"default_family_name" = "우리 가족";
+"sample_member_mom" = "엄마";
+"sample_member_dad" = "아빠";
+"sample_member_sakura" = "사쿠라";
+"sample_reminder_medicine" = "약";
+"sample_reminder_walk" = "산책";

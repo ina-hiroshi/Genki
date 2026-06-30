@@ -1,0 +1,31 @@
+/* WatchHomeView */
+"watch_sent" = "送りました";
+"watch_check_in_prompt" = "今日の元気度";
+"watch_family_today" = "家族の今日";
+
+/* GenkiLevel */
+"genki_level_great" = "とても元気";
+"genki_level_okay" = "普通";
+"genki_level_rough" = "ちょっとつらい";
+"genki_level_great_short" = "元気";
+"genki_level_okay_short" = "普通";
+"genki_level_rough_short" = "つらい";
+"genki_level_great_detail" = "いつも通り、調子がいい";
+"genki_level_okay_detail" = "特に問題なし";
+"genki_level_rough_detail" = "様子を見てほしい";
+
+/* Shared */
+"family" = "家族";
+"reaction_heart" = "ハート";
+"reaction_thumbs_up" = "いいね";
+"reaction_smile" = "笑顔";
+"reaction_clap" = "拍手";
+"reaction_star" = "スター";
+
+/* SampleData / Placeholder */
+"default_family_name" = "わたしの家族";
+"sample_member_mom" = "お母さん";
+"sample_member_dad" = "お父さん";
+"sample_member_sakura" = "さくら";
+"sample_reminder_medicine" = "おくすり";
+"sample_reminder_walk" = "散歩";

@@ -14,10 +14,13 @@ final class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
 
-    /// iPhone 側に「元気だよ」を依頼する。
-    func sendCheckIn() {
+    /// iPhone 側にチェックインを依頼する。
+    func sendCheckIn(level: GenkiLevel = .okay) {
         guard WCSession.default.activationState == .activated else { return }
-        WCSession.default.sendMessage(["action": "checkin"], replyHandler: nil) { _ in }
+        WCSession.default.sendMessage(
+            ["action": "checkin", "level": level.rawValue],
+            replyHandler: nil
+        ) { _ in }
     }
 
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {}

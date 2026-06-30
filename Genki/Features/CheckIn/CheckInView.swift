@@ -19,11 +19,11 @@ struct CheckInView: View {
                     CheckInHeroButton()
 
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("今日の家族")
+                        Text(String(localized: "check_in_today_family"))
                             .font(GenkiFont.headline())
                             .foregroundStyle(GenkiPalette.text)
                         if todaysCheckIns.isEmpty {
-                            Text("まだ誰もチェックインしていません。")
+                            Text(String(localized: "check_in_none_yet"))
                                 .font(GenkiFont.callout())
                                 .foregroundStyle(GenkiPalette.muted)
                                 .genkiCard()
@@ -37,7 +37,7 @@ struct CheckInView: View {
                 .padding(20)
             }
             .genkiScreenBackground()
-            .navigationTitle("チェックイン")
+            .navigationTitle(String(localized: "tab_check_in"))
         }
     }
 }
@@ -48,26 +48,41 @@ private struct CheckInRow: View {
     var me: Member?
     @State private var showPicker = false
 
+    private var memberName: String {
+        checkIn.member?.name ?? String(localized: "family")
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 12) {
-                MemberAvatar(name: checkIn.member?.name ?? "家族",
+                MemberAvatar(name: memberName,
                              colorIndex: checkIn.member?.colorIndex ?? 0,
                              checkedIn: true,
+                             genkiLevel: checkIn.genkiLevel,
                              size: 44)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("\(checkIn.member?.name ?? "家族")が元気だよ")
+                    Text(String(
+                        format: String(localized: "check_in_member_sent_format"),
+                        memberName,
+                        checkIn.genkiLevel.shortLabel
+                    ))
                         .font(GenkiFont.body())
                         .foregroundStyle(GenkiPalette.text)
                     Text(checkIn.date, style: .time)
                         .font(GenkiFont.caption())
                         .foregroundStyle(GenkiPalette.muted)
+                    if let note = checkIn.note, !note.isEmpty {
+                        Text(note)
+                            .font(GenkiFont.callout())
+                            .foregroundStyle(GenkiPalette.muted)
+                            .lineLimit(2)
+                    }
                 }
                 Spacer()
                 Button { showPicker.toggle() } label: {
                     Image(systemName: "face.smiling").foregroundStyle(GenkiPalette.primary)
                 }
-                .accessibilityLabel("リアクションを送る")
+                .accessibilityLabel(String(localized: "check_in_reaction_a11y"))
             }
             ReactionRow(reactions: checkIn.reactions ?? [])
             if showPicker {

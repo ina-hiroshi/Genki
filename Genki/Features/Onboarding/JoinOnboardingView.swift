@@ -10,7 +10,7 @@ struct JoinOnboardingView: View {
     @State private var joinError: String?
 
     private var familyName: String {
-        ShareAcceptanceStore.pendingFamilyName ?? "家族"
+        ShareAcceptanceStore.pendingFamilyName ?? String(localized: "family")
     }
 
     var body: some View {
@@ -21,22 +21,22 @@ struct JoinOnboardingView: View {
                         Image(systemName: "person.2.fill")
                             .font(.system(size: 56))
                             .foregroundStyle(GenkiPalette.primary)
-                        Text("「\(familyName)」に参加")
+                        Text(String(format: String(localized: "join_family_format"), familyName))
                             .font(GenkiFont.title())
                             .foregroundStyle(GenkiPalette.text)
                             .multilineTextAlignment(.center)
-                        Text("あなたの名前と色を設定してください。")
+                        Text(String(localized: "join_setup_detail"))
                             .font(GenkiFont.callout())
                             .foregroundStyle(GenkiPalette.muted)
                             .multilineTextAlignment(.center)
                     }
 
                     VStack(alignment: .leading, spacing: 20) {
-                        field(title: "あなたの名前") {
-                            TextField("例: お父さん / たろう", text: $myName)
+                        field(title: String(localized: "field_your_name")) {
+                            TextField(String(localized: "name_placeholder_father"), text: $myName)
                                 .textFieldStyle(.genki)
                         }
-                        field(title: "あなたの色") {
+                        field(title: String(localized: "field_your_color")) {
                             colorPicker
                         }
                     }
@@ -49,7 +49,7 @@ struct JoinOnboardingView: View {
                             .multilineTextAlignment(.center)
                     }
 
-                    Button("参加する", action: joinFamily)
+                    Button(String(localized: "join_button"), action: joinFamily)
                         .buttonStyle(.genkiPrimary)
                         .disabled(myName.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
@@ -86,7 +86,7 @@ struct JoinOnboardingView: View {
     private func joinFamily() {
         guard let rootRecordName = ShareAcceptanceStore.pendingRootRecordName,
               let zoneOwnerName = ShareAcceptanceStore.pendingZoneOwnerName else {
-            joinError = "共有情報が見つかりません。招待リンクをもう一度開いてください。"
+            joinError = String(localized: "join_error_no_share")
             return
         }
         do {

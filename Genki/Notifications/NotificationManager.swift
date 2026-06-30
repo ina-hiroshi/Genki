@@ -12,7 +12,47 @@ final class NotificationManager {
     private let center = UNUserNotificationCenter.current()
     private let logger = Logger(subsystem: "com.itoguchi.Genki", category: "Notifications")
 
-    private init() {}
+    private init() {
+        registerCheckInCategory()
+    }
+
+    /// チェックイン通知カテゴリ（目覚まし連携の3アクション）。
+    private func registerCheckInCategory() {
+        let actions = GenkiLevel.allCases.map { level in
+            UNNotificationAction(
+                identifier: level.notificationActionID,
+                title: level.shortLabel,
+                options: []
+            )
+        }
+        let category = UNNotificationCategory(
+            identifier: Self.checkInPromptCategoryID,
+            actions: actions,
+            intentIdentifiers: [],
+            options: []
+        )
+        center.setNotificationCategories([category])
+    }
+
+    static let checkInPromptCategoryID = "CHECKIN_LEVEL"
+    static let checkInPromptRequestID = "checkin-prompt"
+
+    /// 目覚まし連携: 元気度を選ぶローカル通知を表示する。
+    func scheduleCheckInPrompt() {
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "notif_check_in_prompt_title")
+        content.body = String(localized: "notif_check_in_prompt_body")
+        content.sound = .default
+        content.categoryIdentifier = Self.checkInPromptCategoryID
+        content.threadIdentifier = "checkin_prompt"
+
+        let request = UNNotificationRequest(
+            identifier: Self.checkInPromptRequestID,
+            content: content,
+            trigger: UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        )
+        center.add(request)
+    }
 
     // MARK: - 権限
 
@@ -34,7 +74,7 @@ final class NotificationManager {
 
         let content = UNMutableNotificationContent()
         content.title = reminder.title
-        content.body = "そろそろ時間です"
+        content.body = String(localized: "notif_reminder_body")
         content.sound = .default
         content.threadIdentifier = "reminder"
 
@@ -80,18 +120,22 @@ final class NotificationManager {
     /// 「○○が△△を完了しました」を可視通知として表示する。
     func notifyCompletion(memberName: String, reminderTitle: String) {
         let content = UNMutableNotificationContent()
-        content.title = "\(memberName)が\(reminderTitle)をしました"
-        content.body = "リアクションを送って応援しよう"
+        content.title = String(format: String(localized: "notif_completion_title_format"), memberName, reminderTitle)
+        content.body = String(localized: "notif_completion_body")
         content.sound = .default
         content.threadIdentifier = "family"
         deliverNow(content)
     }
 
-    /// 「○○が元気だよを送りました」。
-    func notifyCheckIn(memberName: String) {
+    /// 家族へのチェックイン通知（元気度付き）。
+    func notifyCheckIn(memberName: String, level: GenkiLevel) {
         let content = UNMutableNotificationContent()
-        content.title = "\(memberName)が元気だよを送りました"
-        content.body = "今日も安心ですね"
+        content.title = String(
+            format: String(localized: "notif_check_in_title_format"),
+            memberName,
+            level.shortLabel
+        )
+        content.body = level.notificationBody
         content.sound = .default
         content.threadIdentifier = "family"
         deliverNow(content)
@@ -100,7 +144,7 @@ final class NotificationManager {
     /// リアクションが届いたことを通知する。
     func notifyReaction(authorName: String, reaction: ReactionKind) {
         let content = UNMutableNotificationContent()
-        content.title = "\(authorName)からリアクション"
+        content.title = String(format: String(localized: "notif_reaction_title_format"), authorName)
         content.body = reaction.accessibilityLabel
         content.sound = .default
         content.threadIdentifier = "family"
@@ -113,8 +157,8 @@ final class NotificationManager {
     /// Critical Alerts のエンタイトルメント承認後は `.critical` に引き上げる。
     func sendSOS(fromMemberName: String) {
         let content = UNMutableNotificationContent()
-        content.title = "🆘 \(fromMemberName)からのSOS"
-        content.body = "今すぐ連絡してください"
+        content.title = String(format: String(localized: "notif_sos_title_format"), fromMemberName)
+        content.body = String(localized: "notif_sos_body")
         content.sound = .default
         content.interruptionLevel = .timeSensitive
         content.threadIdentifier = "sos"

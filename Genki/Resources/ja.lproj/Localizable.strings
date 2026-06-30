@@ -1,0 +1,201 @@
+/* Common */
+"cancel" = "キャンセル";
+"save" = "保存";
+"family" = "家族";
+"default_family_name" = "わたしの家族";
+"default_reminder_title" = "リマインド";
+
+/* MainTabView */
+"tab_home" = "ホーム";
+"tab_reminders" = "リマインダー";
+"tab_check_in" = "チェックイン";
+"tab_family" = "家族";
+
+/* HomeView */
+"greeting_morning" = "おはよう";
+"greeting_afternoon" = "こんにちは";
+"greeting_evening" = "こんばんは";
+"greeting_with_name_format" = "%@、%@";
+"greeting_without_name_format" = "%@！";
+"home_sos_a11y" = "緊急SOS";
+"home_family_today" = "家族の今日";
+"home_today_reminders" = "今日のリマインド";
+"home_no_reminders" = "まだリマインドがありません。「リマインダー」タブから追加できます。";
+
+/* CheckInHeroButton */
+"check_in_send" = "今日の体調を報告";
+"check_in_done" = "今日の報告済み";
+"check_in_hint_done" = "タップして報告を変更できます";
+"check_in_hint_tap" = "タップして家族に体調を報告します";
+
+/* CheckInLevelSheet */
+"check_in_sheet_title" = "今日の元気度は？";
+"check_in_sheet_nav_title" = "体調チェックイン";
+"check_in_note_placeholder" = "ひとこと（任意）";
+"check_in_note_toggle" = "ひとこと添える";
+"check_in_send_button" = "家族に送る";
+"check_in_update_button" = "報告を更新";
+
+/* GenkiLevel */
+"genki_level_great" = "とても元気";
+"genki_level_okay" = "普通";
+"genki_level_rough" = "ちょっとつらい";
+"genki_level_great_short" = "元気";
+"genki_level_okay_short" = "普通";
+"genki_level_rough_short" = "つらい";
+"genki_level_great_detail" = "いつも通り、調子がいい";
+"genki_level_okay_detail" = "特に問題なし";
+"genki_level_rough_detail" = "様子を見てほしい";
+"genki_level_picker_title" = "元気度";
+
+/* CheckInView */
+"check_in_today_family" = "今日の家族";
+"check_in_none_yet" = "まだ誰もチェックインしていません。";
+"check_in_member_sent_format" = "%1$@が%2$@を報告";
+"check_in_reaction_a11y" = "リアクションを送る";
+
+/* RemindersView */
+"reminders_add_a11y" = "リマインドを追加";
+"reminders_empty_title" = "リマインドを追加しよう";
+"reminders_empty_detail" = "服薬・散歩・水分など、家族で見守りたいことを登録できます。";
+"reminders_add_button" = "追加する";
+"reminder_row_format" = "%@・%@";
+"reminder_repeating_suffix" = "・繰り返し";
+
+/* ReminderEditView */
+"reminder_edit_title" = "リマインド";
+"reminder_section_content" = "内容";
+"reminder_title_placeholder" = "例: おくすり";
+"reminder_section_owner" = "担当";
+"reminder_owner_picker" = "担当者";
+"reminder_owner_unset" = "未設定";
+"reminder_section_time" = "時間";
+"reminder_time_picker" = "時刻";
+"reminder_weekday_a11y_format" = "%@曜日";
+
+/* ReminderRowView */
+"reminder_complete" = "完了";
+"reminder_complete_hint_format" = "%@を完了にして家族に知らせます";
+
+/* FamilyView */
+"family_members_section" = "メンバー";
+"family_you" = "あなた";
+"family_invite_section" = "家族を招待";
+"family_share_preparing" = "共有を準備中…";
+"family_share_link" = "共有リンクを送る";
+"family_invite_detail" = "リンクを受け取った家族がGenkiに参加できます。招待した人だけが見られます。";
+"family_privacy_section" = "プライバシー";
+"family_privacy_shared" = "共有されるのは、リマインドの完了・チェックイン・リアクションだけです。";
+"family_privacy_location" = "位置情報は使いません。履歴はずっと無料で見られます。";
+"family_data_section" = "データとアカウント";
+"family_no_account" = "Genkiにメールアドレス等のアカウント登録はありません。家族グループ・履歴は端末とiCloud（共有時）に保存されます。";
+"family_delete_all" = "すべてのデータを削除";
+"family_delete_confirm_title" = "すべてのデータを削除しますか？";
+"family_delete_confirm_button" = "削除する";
+"family_delete_confirm_message" = "家族グループ・リマインド・チェックイン・履歴がこの端末から削除され、最初の画面に戻ります。iCloud共有中のデータは、設定アプリのiCloudからも削除できます。";
+"family_share_error_simulator" = "共有（招待リンク）は、iCloudを設定した端末で利用できます。シミュレーターでは Xcode の Run 設定に GENKI_ENABLE_CLOUDKIT=1 を追加してください。";
+"family_share_error_format" = "共有の準備に失敗しました (v%1$@ %2$@): %3$@";
+"family_share_no_url" = "共有リンクを取得できませんでした。もう一度お試しください。";
+"family_share_message_format" = "Genkiの「%@」に参加してください";
+
+/* SOSView */
+"sos_emergency" = "緊急SOS";
+"sos_description" = "家族に順番に知らせます。\n応答があるまで連絡を続けます。";
+"sos_sent" = "家族に知らせました";
+"sos_stop" = "SOSを止める";
+"sos_send" = "SOSを送る";
+"sos_critical_alerts_note" = "おやすみモードを突破する強い通知（Critical Alerts）は、Appleの承認後に有効になります。";
+"sos_title" = "SOS";
+
+/* OnboardingIntroPager */
+"onboarding_welcome_title" = "Genkiへようこそ";
+"onboarding_welcome_subtitle" = "家族がつながる、家族が安心する";
+"onboarding_welcome_detail" = "離れて暮らす家族みんなで、毎日の「元気」を共有できるアプリです。";
+"onboarding_reminders_title" = "リマインドで見守る";
+"onboarding_reminders_subtitle" = "服薬・散歩・水分など";
+"onboarding_reminders_detail" = "大切なことを登録して、家族で完了を確認。忘れがちなことも、やさしくサポートします。";
+"onboarding_checkin_title" = "体調チェックイン";
+"onboarding_checkin_subtitle" = "毎朝の安心の合図";
+"onboarding_checkin_detail" = "元気度を選んで家族に報告。目覚ましと連携すれば、起きたら通知から選んで送れます。";
+"onboarding_reactions_title" = "リアクションでつながる";
+"onboarding_reactions_subtitle" = "スタンプで気持ちを返す";
+"onboarding_reactions_detail" = "完了やチェックインにリアクション。小さな「ありがとう」が、家族の絆になります。";
+"onboarding_create_family" = "家族をつくろう";
+"onboarding_setup_detail" = "あなたの家族の名前と、あなた自身の情報を入力してください。";
+"field_family_name" = "家族の名前";
+"field_your_name" = "あなたの名前";
+"name_placeholder_mother" = "例: お母さん / さくら";
+"name_placeholder_father" = "例: お父さん / たろう";
+"field_your_color" = "あなたの色";
+"onboarding_after_create" = "作成後、「家族」タブから共有リンクで招待できます。データの削除もいつでも可能です。";
+"color_a11y_format" = "色 %d";
+
+/* OnboardingView */
+"onboarding_start_family" = "家族をはじめる";
+"onboarding_next" = "次へ";
+"onboarding_to_setup" = "設定へ";
+"onboarding_skip" = "スキップ";
+
+/* JoinOnboardingView */
+"join_family_format" = "「%@」に参加";
+"join_setup_detail" = "あなたの名前と色を設定してください。";
+"join_button" = "参加する";
+"join_error_no_share" = "共有情報が見つかりません。招待リンクをもう一度開いてください。";
+
+/* MemberAvatar */
+"member_checked_in_a11y_format" = "%@、今日チェックイン済み";
+"member_checked_in_level_a11y_format" = "%1$@、%2$@を報告";
+"member_not_checked_in_a11y_format" = "%@、未チェックイン";
+
+/* ReactionPicker */
+"reaction_from_a11y_format" = "%1$@から%2$@";
+
+/* Shared ReactionKind */
+"reaction_heart" = "ハート";
+"reaction_thumbs_up" = "いいね";
+"reaction_smile" = "笑顔";
+"reaction_clap" = "拍手";
+"reaction_star" = "スター";
+
+/* NotificationManager */
+"notif_reminder_body" = "そろそろ時間です";
+"notif_completion_title_format" = "%1$@が%2$@をしました";
+"notif_completion_body" = "リアクションを送って応援しよう";
+"notif_check_in_title_format" = "%1$@が%2$@と報告";
+"notif_check_in_body_great" = "今日も安心ですね";
+"notif_check_in_body_okay" = "今日も様子は問題なさそうです";
+"notif_check_in_body_rough" = "様子を見てあげてください";
+"notif_check_in_prompt_title" = "今日の元気度は？";
+"notif_check_in_prompt_body" = "ボタンをタップして家族に報告してください";
+"notif_reaction_title_format" = "%@からリアクション";
+"notif_sos_title_format" = "🆘 %@からのSOS";
+"notif_sos_body" = "今すぐ連絡してください";
+
+/* GenkiCloudError */
+"error_icloud_unavailable" = "iCloudにサインインしてください。設定アプリ → Apple ID → iCloud で確認できます。";
+"error_share_not_found" = "共有リンクが見つかりませんでした。もう一度お試しください。";
+
+/* CloudSharingSheet */
+"share_sheet_title" = "Genki 家族グループ";
+
+/* CheckInIntent */
+"intent_check_in_title" = "体調を報告";
+"intent_check_in_description" = "選んだ元気度で家族にチェックインを送ります。";
+"intent_prompt_check_in_title" = "元気度を選んでチェックイン";
+"intent_prompt_check_in_description" = "通知から元気度を選んでチェックインします。目覚ましのオートメーション向けです。";
+"intent_no_family" = "先にGenkiで家族グループを作成してください。";
+"intent_already_sent" = "今日はもうチェックイン済みです。";
+"intent_success_format" = "家族に「%@」を報告しました。";
+"intent_prompt_success" = "通知から元気度を選んでください。";
+
+/* GenkiShortcuts */
+"shortcut_check_in_title" = "体調を報告";
+"shortcut_prompt_check_in_title" = "元気度を選ぶ";
+
+/* SampleData / Placeholder */
+"sample_member_mom" = "お母さん";
+"sample_member_dad" = "お父さん";
+"sample_member_sakura" = "さくら";
+"sample_reminder_medicine" = "おくすり";
+"sample_reminder_walk" = "散歩";
+"sample_reminder_water" = "水分をとる";

@@ -25,19 +25,48 @@ enum FamilyActions {
 
     // MARK: - チェックイン
 
-    /// 「元気だよ」チェックインを記録する。1日1回（同日は重複させない）。
+    /// 体調チェックインを記録する。同日は更新（元気度・ひとことを変更可）。
     @discardableResult
-    static func checkIn(member: Member, in context: ModelContext, fromAlarm: Bool = false) -> CheckIn? {
-        if member.hasCheckedIn() { return nil }
-        let checkIn = CheckIn(fromAlarm: fromAlarm, member: member)
-        context.insert(checkIn)
+    static func checkIn(member: Member,
+                        level: GenkiLevel = .okay,
+                        note: String? = nil,
+                        in context: ModelContext,
+                        fromAlarm: Bool = false) -> CheckIn? {
+        let trimmedNote = note?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let savedNote = trimmedNote?.isEmpty == true ? nil : trimmedNote
+
+        let checkIn: CheckIn
+        let isUpdate: Bool
+        if let existing = member.todaysCheckIn() {
+            existing.genkiLevel = level
+            existing.note = savedNote
+            existing.date = .now
+            if fromAlarm { existing.fromAlarm = true }
+            checkIn = existing
+            isUpdate = true
+        } else {
+            checkIn = CheckIn(level: level.rawValue, note: savedNote, fromAlarm: fromAlarm, member: member)
+            context.insert(checkIn)
+            isUpdate = false
+        }
+
         try? context.save()
         rebuildSnapshot(in: context)
+
         if let family = member.family {
             Task {
-                await CloudKitEventWriter.publishCheckIn(memberName: member.name, family: family)
+                await CloudKitEventWriter.publishCheckIn(
+                    memberName: member.name,
+                    level: level,
+                    family: family
+                )
             }
         }
+
+        if !isUpdate {
+            NotificationManager.shared.notifyCheckIn(memberName: member.name, level: level)
+        }
+
         return checkIn
     }
 
@@ -118,7 +147,8 @@ enum FamilyActions {
             MemberStatus(id: member.id.uuidString,
                          name: member.name,
                          colorIndex: member.colorIndex,
-                         checkedInToday: member.hasCheckedIn())
+                         checkedInToday: member.hasCheckedIn(),
+                         genkiLevel: member.todaysGenkiLevel())
         }
         let upcoming = family.sortedReminders
             .filter { $0.isScheduled() }

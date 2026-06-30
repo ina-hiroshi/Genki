@@ -1,0 +1,200 @@
+/* Common */
+"cancel" = "취소";
+"save" = "저장";
+"family" = "가족";
+"default_family_name" = "우리 가족";
+"default_reminder_title" = "리마인더";
+
+/* MainTabView */
+"tab_home" = "홈";
+"tab_reminders" = "리마인더";
+"tab_check_in" = "체크인";
+"tab_family" = "가족";
+
+/* HomeView */
+"greeting_morning" = "좋은 아침";
+"greeting_afternoon" = "안녕하세요";
+"greeting_evening" = "좋은 저녁";
+"greeting_with_name_format" = "%1$@, %2$@";
+"greeting_without_name_format" = "%@!";
+"home_sos_a11y" = "긴급 SOS";
+"home_family_today" = "오늘의 가족";
+"home_today_reminders" = "오늘의 리마인더";
+"home_no_reminders" = "아직 리마인더가 없습니다. 리마인더 탭에서 추가하세요.";
+
+/* CheckInHeroButton */
+"check_in_send" = "컨디션 보고하기";
+"check_in_done" = "오늘 보고 완료";
+"check_in_hint_done" = "탭하여 보고 내용을 변경";
+"check_in_hint_tap" = "탭하여 가족에게 컨디션을 보고";
+
+"check_in_sheet_title" = "오늘 컨디션은 어때요?";
+"check_in_sheet_nav_title" = "컨디션 체크인";
+"check_in_note_placeholder" = "한마디 (선택)";
+"check_in_note_toggle" = "한마디 추가";
+"check_in_send_button" = "가족에게 보내기";
+"check_in_update_button" = "보고 업데이트";
+
+"genki_level_great" = "아주 좋아요";
+"genki_level_okay" = "보통";
+"genki_level_rough" = "조금 힘들어요";
+"genki_level_great_short" = "좋음";
+"genki_level_okay_short" = "보통";
+"genki_level_rough_short" = "힘듦";
+"genki_level_great_detail" = "평소처럼 괜찮아요";
+"genki_level_okay_detail" = "특별한 문제 없어요";
+"genki_level_rough_detail" = "상태를 봐주세요";
+"genki_level_picker_title" = "컨디션";
+
+/* CheckInView */
+"check_in_today_family" = "오늘의 가족";
+"check_in_none_yet" = "아직 아무도 체크인하지 않았습니다.";
+"check_in_member_sent_format" = "%1$@님이 %2$@을(를) 보고";
+"check_in_reaction_a11y" = "리액션 보내기";
+
+/* RemindersView */
+"reminders_add_a11y" = "리마인더 추가";
+"reminders_empty_title" = "리마인더를 추가하세요";
+"reminders_empty_detail" = "복약, 산책, 수분 섭취 등 가족과 함께 관리하세요.";
+"reminders_add_button" = "추가";
+"reminder_row_format" = "%1$@ · %2$@";
+"reminder_repeating_suffix" = " · 반복";
+
+/* ReminderEditView */
+"reminder_edit_title" = "리마인더";
+"reminder_section_content" = "내용";
+"reminder_title_placeholder" = "예: 약";
+"reminder_section_owner" = "담당";
+"reminder_owner_picker" = "담당자";
+"reminder_owner_unset" = "미설정";
+"reminder_section_time" = "시간";
+"reminder_time_picker" = "시각";
+"reminder_weekday_a11y_format" = "%@요일";
+
+/* ReminderRowView */
+"reminder_complete" = "완료";
+"reminder_complete_hint_format" = "%@을(를) 완료하고 가족에게 알립니다";
+
+/* FamilyView */
+"family_members_section" = "멤버";
+"family_you" = "나";
+"family_invite_section" = "가족 초대";
+"family_share_preparing" = "공유 준비 중…";
+"family_share_link" = "초대 링크 보내기";
+"family_invite_detail" = "링크를 받은 가족이 Genki에 참여할 수 있습니다. 초대받은 사람만 볼 수 있습니다.";
+"family_privacy_section" = "개인정보";
+"family_privacy_shared" = "리마인더 완료, 체크인, 리액션만 공유됩니다.";
+"family_privacy_location" = "위치 정보는 사용하지 않습니다. 기록은 계속 무료입니다.";
+"family_data_section" = "데이터 및 계정";
+"family_no_account" = "Genki는 이메일 등 계정 등록이 필요 없습니다. 가족 그룹과 기록은 기기 및 iCloud(공유 시)에 저장됩니다.";
+"family_delete_all" = "모든 데이터 삭제";
+"family_delete_confirm_title" = "모든 데이터를 삭제할까요?";
+"family_delete_confirm_button" = "삭제";
+"family_delete_confirm_message" = "가족 그룹, 리마인더, 체크인, 기록이 이 기기에서 삭제되고 처음 화면으로 돌아갑니다. iCloud 공유 중이면 설정 앱에서도 삭제할 수 있습니다.";
+"family_share_error_simulator" = "초대 링크는 iCloud가 설정된 기기에서 사용할 수 있습니다. 시뮬레이터에서는 Xcode Run 설정에 GENKI_ENABLE_CLOUDKIT=1을 추가하세요.";
+"family_share_error_format" = "공유 준비 실패 (v%1$@ %2$@): %3$@";
+"family_share_no_url" = "초대 링크를 가져올 수 없습니다. 다시 시도해 주세요.";
+"family_share_message_format" = "Genki 「%@」 그룹에 참여해 주세요";
+
+/* SOSView */
+"sos_emergency" = "긴급 SOS";
+"sos_description" = "가족에게 순서대로 알립니다.\n응답이 있을 때까지 계속 연락합니다.";
+"sos_sent" = "가족에게 알렸습니다";
+"sos_stop" = "SOS 중지";
+"sos_send" = "SOS 보내기";
+"sos_critical_alerts_note" = "방해 금지를 뚫는 중요 알림(Critical Alerts)은 Apple 승인 후 사용할 수 있습니다.";
+"sos_title" = "SOS";
+
+/* OnboardingIntroPager */
+"onboarding_welcome_title" = "Genki에 오신 것을 환영합니다";
+"onboarding_welcome_subtitle" = "가족이 연결되고, 안심합니다";
+"onboarding_welcome_detail" = "떨어져 사는 가족 모두가 매일 \"잘 지내요\"를 공유하는 앱입니다.";
+"onboarding_reminders_title" = "리마인더로 돌봄";
+"onboarding_reminders_subtitle" = "복약, 산책, 수분 등";
+"onboarding_reminders_detail" = "중요한 일을 등록하고 가족과 완료를 확인하세요.";
+"onboarding_checkin_title" = "컨디션 체크인";
+"onboarding_checkin_subtitle" = "매일 아침의 안심 신호";
+"onboarding_checkin_detail" = "컨디션을 선택해 가족에게 보고하세요. 알람과 연동하면 기상 후 알림에서 선택할 수 있습니다.";
+"onboarding_reactions_title" = "리액션으로 연결";
+"onboarding_reactions_subtitle" = "스티커로 마음 전하기";
+"onboarding_reactions_detail" = "완료와 체크인에 리액션하세요. 작은 \"고마워\"가 가족의 유대가 됩니다.";
+"onboarding_create_family" = "가족 만들기";
+"onboarding_setup_detail" = "가족 이름과 본인 정보를 입력하세요.";
+"field_family_name" = "가족 이름";
+"field_your_name" = "내 이름";
+"name_placeholder_mother" = "예: 엄마 / 사쿠라";
+"name_placeholder_father" = "예: 아빠 / 타로";
+"field_your_color" = "내 색상";
+"onboarding_after_create" = "만든 후 \"가족\" 탭에서 초대 링크로 초대할 수 있습니다. 데이터 삭제도 언제든 가능합니다.";
+"color_a11y_format" = "색상 %d";
+
+/* OnboardingView */
+"onboarding_start_family" = "가족 시작하기";
+"onboarding_next" = "다음";
+"onboarding_to_setup" = "설정으로";
+"onboarding_skip" = "건너뛰기";
+
+/* JoinOnboardingView */
+"join_family_format" = "\"%@\" 참여";
+"join_setup_detail" = "이름과 색상을 설정하세요.";
+"join_button" = "참여";
+"join_error_no_share" = "공유 정보를 찾을 수 없습니다. 초대 링크를 다시 열어주세요.";
+
+/* MemberAvatar */
+"member_checked_in_a11y_format" = "%@, 오늘 체크인 완료";
+"member_checked_in_level_a11y_format" = "%1$@, %2$@ 보고";
+"member_not_checked_in_a11y_format" = "%@, 체크인 안 함";
+
+/* ReactionPicker */
+"reaction_from_a11y_format" = "%1$@님이 %2$@";
+
+/* Shared ReactionKind */
+"reaction_heart" = "하트";
+"reaction_thumbs_up" = "좋아요";
+"reaction_smile" = "웃음";
+"reaction_clap" = "박수";
+"reaction_star" = "별";
+
+/* NotificationManager */
+"notif_reminder_body" = "곧 시간입니다";
+"notif_completion_title_format" = "%1$@님이 %2$@을(를) 완료했습니다";
+"notif_completion_body" = "리액션으로 응원해 주세요";
+"notif_check_in_title_format" = "%1$@님이 %2$@을(를) 보고";
+"notif_check_in_body_great" = "오늘도 안심이에요";
+"notif_check_in_body_okay" = "오늘도 괜찮아 보여요";
+"notif_check_in_body_rough" = "상태를 확인해 주세요";
+"notif_check_in_prompt_title" = "오늘 컨디션은 어때요?";
+"notif_check_in_prompt_body" = "버튼을 탭하여 가족에게 보고하세요";
+"notif_reaction_title_format" = "%@님의 리액션";
+"notif_sos_title_format" = "🆘 %@님의 SOS";
+"notif_sos_body" = "지금 바로 연락해 주세요";
+
+/* GenkiCloudError */
+"error_icloud_unavailable" = "iCloud에 로그인해 주세요. 설정 → Apple ID → iCloud에서 확인할 수 있습니다.";
+"error_share_not_found" = "공유 링크를 찾을 수 없습니다. 다시 시도해 주세요.";
+
+/* CloudSharingSheet */
+"share_sheet_title" = "Genki 가족 그룹";
+
+/* CheckInIntent */
+"intent_check_in_title" = "컨디션 보고";
+"intent_check_in_description" = "선택한 컨디션으로 가족에게 체크인을 보냅니다.";
+"intent_prompt_check_in_title" = "컨디션 선택 체크인";
+"intent_prompt_check_in_description" = "알림에서 컨디션을 선택합니다. 기상 자동화용.";
+"intent_success_format" = "가족에게 \"%@\"을(를) 보고했습니다.";
+"intent_prompt_success" = "알림에서 컨디션을 선택해 주세요.";
+"shortcut_check_in_title" = "컨디션 보고";
+"shortcut_prompt_check_in_title" = "컨디션 선택";
+"intent_no_family" = "먼저 Genki에서 가족 그룹을 만드세요.";
+"intent_already_sent" = "오늘은 이미 체크인했습니다.";
+
+/* GenkiShortcuts */
+
+
+/* SampleData / Placeholder */
+"sample_member_mom" = "엄마";
+"sample_member_dad" = "아빠";
+"sample_member_sakura" = "사쿠라";
+"sample_reminder_medicine" = "약";
+"sample_reminder_walk" = "산책";
+"sample_reminder_water" = "물 마시기";

@@ -1,57 +1,37 @@
-import CloudKit
 import SwiftUI
 import UIKit
 
-/// UICloudSharingController を SwiftUI から表示する。share は事前に CloudKit へ保存済みであること。
-struct CloudSharingSheet: UIViewControllerRepresentable {
-    let share: CKShare
-    let container: CKContainer
+/// iOS 標準の共有シート（メッセージ・メール・AirDrop 等）で CKShare リンクを送る。
+struct ActivityShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
     var onDismiss: () -> Void
-    var onError: ((Error) -> Void)?
 
-    func makeUIViewController(context: Context) -> UICloudSharingController {
-        let sharing = UICloudSharingController(share: share, container: container)
-        sharing.delegate = context.coordinator
-        sharing.availablePermissions = [.allowReadWrite, .allowPrivate, .allowPublic]
-        return sharing
-    }
-
-    func updateUIViewController(_ uiViewController: UICloudSharingController, context: Context) {}
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onDismiss: onDismiss, onError: onError)
-    }
-
-    final class Coordinator: NSObject, UICloudSharingControllerDelegate {
-        let onDismiss: () -> Void
-        let onError: ((Error) -> Void)?
-
-        init(onDismiss: @escaping () -> Void, onError: ((Error) -> Void)?) {
-            self.onDismiss = onDismiss
-            self.onError = onError
-        }
-
-        func cloudSharingController(_ csc: UICloudSharingController, failedToSaveShareWithError error: Error) {
-            onError?(error)
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        controller.completionWithItemsHandler = { _, _, _, _ in
             onDismiss()
         }
-
-        func itemTitle(for csc: UICloudSharingController) -> String? {
-            "Genki 家族グループ"
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootView = scene.windows.first(where: \.isKeyWindow)?.rootViewController?.view {
+            controller.popoverPresentationController?.sourceView = rootView
+            controller.popoverPresentationController?.sourceRect = CGRect(
+                x: rootView.bounds.midX,
+                y: rootView.bounds.midY,
+                width: 0,
+                height: 0
+            )
+            controller.popoverPresentationController?.permittedArrowDirections = []
         }
-
-        func cloudSharingControllerDidSaveShare(_ csc: UICloudSharingController) {
-            onDismiss()
-        }
-
-        func cloudSharingControllerDidStopSharing(_ csc: UICloudSharingController) {
-            onDismiss()
-        }
+        return controller
     }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 struct ShareSheetItem: Identifiable {
     let id = UUID()
-    let share: CKShare
-    let container: CKContainer
+    let url: URL
+    let message: String
+
+    var activityItems: [Any] { [message, url] }
 }

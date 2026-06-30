@@ -15,32 +15,35 @@ struct ReminderEditView: View {
     @State private var ownerID: UUID?
 
     private let symbols = ["pills", "figure.walk", "drop", "fork.knife", "bed.double", "heart", "bell", "cup.and.saucer"]
-    private let weekdaySymbols = ["日", "月", "火", "水", "木", "金", "土"]
+
+    private var weekdaySymbols: [String] {
+        Calendar.current.shortWeekdaySymbols
+    }
 
     var body: some View {
         NavigationStack {
             Form {
-                Section("内容") {
-                    TextField("例: おくすり", text: $title)
+                Section(String(localized: "reminder_section_content")) {
+                    TextField(String(localized: "reminder_title_placeholder"), text: $title)
                     symbolPicker
                 }
 
-                Section("担当") {
-                    Picker("担当者", selection: $ownerID) {
-                        Text("未設定").tag(UUID?.none)
+                Section(String(localized: "reminder_section_owner")) {
+                    Picker(String(localized: "reminder_owner_picker"), selection: $ownerID) {
+                        Text(String(localized: "reminder_owner_unset")).tag(UUID?.none)
                         ForEach(members) { member in
                             Text(member.name).tag(UUID?.some(member.id))
                         }
                     }
                 }
 
-                Section("時間") {
-                    DatePicker("時刻", selection: $time, displayedComponents: .hourAndMinute)
+                Section(String(localized: "reminder_section_time")) {
+                    DatePicker(String(localized: "reminder_time_picker"), selection: $time, displayedComponents: .hourAndMinute)
                     weekdayPicker
                 }
             }
             .genkiListStyle()
-            .navigationTitle("リマインド")
+            .navigationTitle(String(localized: "reminder_edit_title"))
             .onAppear {
                 if ownerID == nil {
                     ownerID = FamilyActions.currentMember(in: context)?.id
@@ -48,10 +51,10 @@ struct ReminderEditView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("キャンセル") { dismiss() }
+                    Button(String(localized: "cancel")) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") { save() }
+                    Button(String(localized: "save")) { save() }
                         .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
@@ -81,7 +84,8 @@ struct ReminderEditView: View {
         HStack(spacing: 8) {
             ForEach(1...7, id: \.self) { weekday in
                 let selected = selectedWeekdays.contains(weekday)
-                Text(weekdaySymbols[weekday - 1])
+                let symbol = weekdaySymbols[weekday - 1]
+                Text(symbol)
                     .font(GenkiFont.callout())
                     .foregroundStyle(selected ? .white : GenkiPalette.text)
                     .frame(width: 36, height: 36)
@@ -89,7 +93,7 @@ struct ReminderEditView: View {
                     .onTapGesture {
                         if selected { selectedWeekdays.remove(weekday) } else { selectedWeekdays.insert(weekday) }
                     }
-                    .accessibilityLabel("\(weekdaySymbols[weekday - 1])曜日")
+                    .accessibilityLabel(String(format: String(localized: "reminder_weekday_a11y_format"), symbol))
                     .accessibilityAddTraits(selected ? .isSelected : [])
             }
         }
