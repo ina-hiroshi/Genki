@@ -50,6 +50,9 @@ final class ShareController {
 
         let root = CKRecord(recordType: CloudKitManager.familyGroupRecordType, recordID: rootID)
         root["name"] = family.name as CKRecordValue
+        if let premium = family.premiumUnlockedAt {
+            root["premiumUnlockedAt"] = premium as CKRecordValue
+        }
         _ = try await manager.saveRecords([root], savePolicy: .allKeys)
     }
 
@@ -127,7 +130,12 @@ final class ShareController {
         CurrentUser.myMemberID = me.id
         CurrentUser.myName = me.name
         CurrentUser.isOnboarded = true
+        TrialManager.startTrialIfNeeded()
         ShareAcceptanceStore.clear()
         FamilyActions.rebuildSnapshot(in: context)
+        Task { @MainActor in
+            await PremiumSync.refreshPremium(from: family, in: context)
+            await EntitlementStore.shared.refresh(in: context)
+        }
     }
 }

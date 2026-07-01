@@ -8,7 +8,9 @@ enum CloudKitEventWriter {
     private static let logger = Logger(subsystem: "com.itoguchi.Genki", category: "CloudKitSync")
 
     static func publishCheckIn(memberName: String, level: GenkiLevel, family: FamilyGroup) async {
-        guard FeatureFlags.cloudKitEnabled, family.shareRecordName != nil else { return }
+        guard FeatureFlags.cloudKitEnabled,
+              family.shareRecordName != nil,
+              FeatureGate.canSyncToFamily(family: family) else { return }
         let manager = CloudKitManager.shared
         guard let zoneID = zoneID(for: family, manager: manager) else { return }
 
@@ -29,7 +31,9 @@ enum CloudKitEventWriter {
     }
 
     static func publishCompletion(memberName: String, reminderTitle: String, family: FamilyGroup) async {
-        guard FeatureFlags.cloudKitEnabled, family.shareRecordName != nil else { return }
+        guard FeatureFlags.cloudKitEnabled,
+              family.shareRecordName != nil,
+              FeatureGate.canSyncToFamily(family: family) else { return }
         let manager = CloudKitManager.shared
         guard let zoneID = zoneID(for: family, manager: manager) else { return }
 
@@ -57,6 +61,8 @@ enum CloudKitEventWriter {
         let families = (try? context.fetch(FetchDescriptor<FamilyGroup>())) ?? []
 
         for family in families where family.shareRecordName != nil {
+            await PremiumSync.refreshPremium(from: family, in: context)
+            guard FeatureGate.canSyncToFamily(family: family) else { continue }
             guard let zoneID = zoneID(for: family, manager: manager) else { continue }
             let db = database(for: family, manager: manager)
             await notifyNewRecords(ofType: CloudKitManager.checkInRecordType, in: db, zoneID: zoneID) { record in

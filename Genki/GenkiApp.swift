@@ -33,7 +33,9 @@ struct GenkiApp: App {
         await bootstrapShareIfRequested()
         #endif
         PhoneSessionManager.shared.configure(container: container)
+        await PurchaseManager.shared.start()
         await NotificationManager.shared.requestAuthorization()
+        await EntitlementStore.shared.refresh(in: container.mainContext)
         // CloudKit 購読は家族グループ作成後に登録（起動直後の CKContainer 初期化クラッシュを避ける）
         FamilyActions.rebuildSnapshot(in: container.mainContext)
     }
@@ -109,6 +111,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         Task { @MainActor in
             if let context = modelContainer?.mainContext {
                 await CloudKitEventWriter.handleRemoteChange(in: context)
+                await EntitlementStore.shared.refresh(in: context)
             }
             completionHandler(.newData)
         }

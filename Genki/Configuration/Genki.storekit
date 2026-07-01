@@ -1,0 +1,40 @@
+{
+  "identifier" : "GenkiStoreKit",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "1200",
+      "familyShareable" : false,
+      "internalID" : "6785815734",
+      "localizations" : [
+        {
+          "description" : "全機能を永久解放。1回の購入で家族全員。",
+          "displayName" : "Genki フル版",
+          "locale" : "ja"
+        },
+        {
+          "description" : "All features forever. One family purchase.",
+          "displayName" : "Genki Full Unlock",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.itoguchi.Genki.unlock",
+      "referenceName" : "Genki Full Unlock",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "0",
+    "_developerTeamID" : "NUZ8XA844N",
+    "_lastSynchronizedDate" : 0
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

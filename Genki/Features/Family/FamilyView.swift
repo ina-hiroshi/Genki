@@ -5,16 +5,22 @@ import SwiftData
 struct FamilyView: View {
     @Environment(\.modelContext) private var context
     @Query private var families: [FamilyGroup]
+    @State private var entitlements = EntitlementStore.shared
     @State private var shareError: String?
     @State private var shareSheetItem: ShareSheetItem?
     @State private var isPreparingShare = false
     @State private var showDeleteConfirmation = false
+    @State private var showPaywall = false
+    @State private var showTransferHelp = false
+    @State private var restoreMessage: String?
 
     private var family: FamilyGroup? { families.first }
 
     var body: some View {
         NavigationStack {
             List {
+                premiumSection
+
                 if let family {
                     Section(String(localized: "family_members_section")) {
                         ForEach(family.sortedMembers) { member in
@@ -30,12 +36,21 @@ struct FamilyView: View {
                                 }
                             }
                         }
+                        if let limit = FeatureGate.memberLimit(for: family) {
+                            Text(String(format: String(localized: "family_member_limit_format"), limit))
+                                .font(GenkiFont.caption())
+                                .foregroundStyle(GenkiPalette.muted)
+                        }
                     }
                 }
 
                 Section(String(localized: "family_invite_section")) {
                     Button {
-                        inviteFamily()
+                        if FeatureGate.canInvite(family: family) {
+                            inviteFamily()
+                        } else {
+                            showPaywall = true
+                        }
                     } label: {
                         if isPreparingShare {
                             Label(String(localized: "family_share_preparing"), systemImage: "hourglass")
@@ -44,6 +59,11 @@ struct FamilyView: View {
                         }
                     }
                     .disabled(isPreparingShare || family == nil)
+                    if !FeatureGate.canInvite(family: family) {
+                        Text(String(localized: "family_invite_locked"))
+                            .font(GenkiFont.caption())
+                            .foregroundStyle(GenkiPalette.muted)
+                    }
                     if let shareError {
                         Text(shareError).font(GenkiFont.caption()).foregroundStyle(GenkiPalette.sos)
                     }
@@ -77,6 +97,12 @@ struct FamilyView: View {
             .sheet(item: $shareSheetItem) { item in
                 ActivityShareSheet(items: item.activityItems, onDismiss: { shareSheetItem = nil })
             }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+            }
+            .sheet(isPresented: $showTransferHelp) {
+                LicenseTransferHelpView()
+            }
             .confirmationDialog(
                 String(localized: "family_delete_confirm_title"),
                 isPresented: $showDeleteConfirmation,
@@ -87,7 +113,62 @@ struct FamilyView: View {
             } message: {
                 Text(String(localized: "family_delete_confirm_message"))
             }
+            .task { await entitlements.refresh(in: context) }
         }
+    }
+
+    @ViewBuilder
+    private var premiumSection: some View {
+        Section(String(localized: "family_premium_section")) {
+            if entitlements.hasFullAccess {
+                Label(String(localized: "paywall_already_unlocked"), systemImage: "checkmark.seal.fill")
+                    .font(GenkiFont.body())
+                    .foregroundStyle(GenkiPalette.done)
+            } else if entitlements.isFamilyOwner {
+                Button {
+                    showPaywall = true
+                } label: {
+                    Label(String(localized: "paywall_unlock_button"), systemImage: "lock.open.fill")
+                }
+                Button(String(localized: "paywall_restore")) {
+                    Task { await restorePurchases() }
+                }
+                .font(GenkiFont.callout())
+            } else {
+                Text(String(format: String(localized: "paywall_participant_subtitle_format"),
+                            entitlements.premiumOwnerName ?? String(localized: "family")))
+                    .font(GenkiFont.caption())
+                    .foregroundStyle(GenkiPalette.muted)
+            }
+
+            Button(String(localized: "paywall_transfer_help")) {
+                showTransferHelp = true
+            }
+            .font(GenkiFont.caption())
+            .foregroundStyle(GenkiPalette.muted)
+
+            if let restoreMessage {
+                Text(restoreMessage)
+                    .font(GenkiFont.caption())
+                    .foregroundStyle(GenkiPalette.muted)
+            }
+        }
+    }
+
+    private func restorePurchases() async {
+        let success = await PurchaseManager.shared.restorePurchases()
+        if success {
+            do {
+                try await entitlements.applyPurchase(to: family, in: context)
+                restoreMessage = String(localized: "paywall_restore_success")
+            } catch {
+                restoreMessage = GenkiCloudError.friendlyMessage(for: error)
+            }
+        } else {
+            restoreMessage = PurchaseManager.shared.lastErrorMessage
+                ?? String(localized: "purchase_restore_not_found")
+        }
+        await entitlements.refresh(in: context)
     }
 
     private func inviteFamily() {

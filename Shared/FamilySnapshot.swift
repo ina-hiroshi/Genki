@@ -7,15 +7,19 @@ public struct FamilySnapshot: Codable, Equatable, Sendable {
     public var generatedAt: Date
     public var members: [MemberStatus]
     public var upcoming: [ReminderStatus]
+    /// フル版（トライアル中・購入済・家族 premium）なら true。ウィジェット表示用。
+    public var hasFullAccess: Bool
 
     public init(familyName: String,
                 generatedAt: Date = .now,
                 members: [MemberStatus],
-                upcoming: [ReminderStatus]) {
+                upcoming: [ReminderStatus],
+                hasFullAccess: Bool = true) {
         self.familyName = familyName
         self.generatedAt = generatedAt
         self.members = members
         self.upcoming = upcoming
+        self.hasFullAccess = hasFullAccess
     }
 
     public static var placeholder: FamilySnapshot {
@@ -47,7 +51,7 @@ public struct FamilySnapshot: Codable, Equatable, Sendable {
         )
     }
 
-    public static let empty = FamilySnapshot(familyName: "Genki", members: [], upcoming: [])
+    public static let empty = FamilySnapshot(familyName: "Genki", members: [], upcoming: [], hasFullAccess: false)
 }
 
 public struct MemberStatus: Codable, Equatable, Identifiable, Sendable {

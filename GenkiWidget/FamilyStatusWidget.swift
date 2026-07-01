@@ -47,6 +47,14 @@ struct FamilyStatusEntryView: View {
     @Environment(\.widgetFamily) private var family
 
     var body: some View {
+        if entry.snapshot.hasFullAccess {
+            content
+        } else {
+            lockedContent
+        }
+    }
+
+    private var content: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 4) {
                 Image(systemName: "sun.max.fill").foregroundStyle(GenkiPalette.primary)
@@ -73,6 +81,21 @@ struct FamilyStatusEntryView: View {
                 }
                 .padding(.top, 2)
             }
+            Spacer(minLength: 0)
+        }
+    }
+
+    private var lockedContent: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Image(systemName: "lock.fill")
+                .foregroundStyle(GenkiPalette.primary)
+            Text(String(localized: "widget_locked_title"))
+                .font(.system(.caption, design: .rounded).weight(.semibold))
+                .foregroundStyle(GenkiPalette.text)
+            Text(String(localized: "widget_locked_detail"))
+                .font(.system(.caption2, design: .rounded))
+                .foregroundStyle(GenkiPalette.muted)
+                .lineLimit(3)
             Spacer(minLength: 0)
         }
     }

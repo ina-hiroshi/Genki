@@ -74,6 +74,7 @@ struct OnboardingView: View {
         CurrentUser.myMemberID = me.id
         CurrentUser.myName = me.name
         CurrentUser.isOnboarded = true
+        TrialManager.startTrialIfNeeded()
 
         FamilyActions.rebuildSnapshot(in: context)
 

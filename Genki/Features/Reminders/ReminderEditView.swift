@@ -13,6 +13,8 @@ struct ReminderEditView: View {
     @State private var time = Calendar.current.date(bySettingHour: 8, minute: 0, second: 0, of: .now) ?? .now
     @State private var selectedWeekdays: Set<Int> = [1, 2, 3, 4, 5, 6, 7]
     @State private var ownerID: UUID?
+    @State private var limitError: String?
+    @State private var showPaywall = false
 
     private let symbols = ["pills", "figure.walk", "drop", "fork.knife", "bed.double", "heart", "bell", "cup.and.saucer"]
 
@@ -41,9 +43,20 @@ struct ReminderEditView: View {
                     DatePicker(String(localized: "reminder_time_picker"), selection: $time, displayedComponents: .hourAndMinute)
                     weekdayPicker
                 }
+
+                if let limitError {
+                    Section {
+                        Text(limitError)
+                            .font(GenkiFont.caption())
+                            .foregroundStyle(GenkiPalette.sos)
+                    }
+                }
             }
             .genkiListStyle()
             .navigationTitle(String(localized: "reminder_edit_title"))
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+            }
             .onAppear {
                 if ownerID == nil {
                     ownerID = FamilyActions.currentMember(in: context)?.id
@@ -100,6 +113,15 @@ struct ReminderEditView: View {
     }
 
     private func save() {
+        let family = families.first
+        let existingCount = (try? context.fetchCount(FetchDescriptor<Reminder>())) ?? 0
+        guard FeatureGate.canAddReminder(currentCount: existingCount, family: family) else {
+            limitError = String(format: String(localized: "reminders_limit_reached_format"),
+                                FeatureGate.freeReminderLimit)
+            showPaywall = true
+            return
+        }
+        limitError = nil
         let comps = Calendar.current.dateComponents([.hour, .minute], from: time)
         let owner = members.first { $0.id == ownerID }
         FamilyActions.addReminder(

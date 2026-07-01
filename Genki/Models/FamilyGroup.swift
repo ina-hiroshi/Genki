@@ -15,6 +15,8 @@ final class FamilyGroup {
     var cloudKitRootZoneOwnerName: String?
     /// 共有データの CloudKit ゾーン名（GenkiSharedZone または _defaultZone）。
     var cloudKitZoneName: String?
+    /// オーナー購入後に CloudKit ルートへ書き込むフル版有効化日時。
+    var premiumUnlockedAt: Date?
 
     @Relationship(deleteRule: .cascade, inverse: \Member.family)
     var members: [Member]? = []

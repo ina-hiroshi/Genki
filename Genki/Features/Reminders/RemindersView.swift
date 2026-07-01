@@ -5,7 +5,11 @@ import SwiftData
 struct RemindersView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \Reminder.hour) private var reminders: [Reminder]
+    @Query private var families: [FamilyGroup]
     @State private var showingEditor = false
+    @State private var showPaywall = false
+
+    private var family: FamilyGroup? { families.first }
 
     var body: some View {
         NavigationStack {
@@ -30,6 +34,12 @@ struct RemindersView: View {
                             }
                         }
                         .onDelete(perform: delete)
+
+                        if let limit = FeatureGate.reminderLimit(for: family) {
+                            Text(String(format: String(localized: "reminders_limit_format"), limit))
+                                .font(GenkiFont.caption())
+                                .foregroundStyle(GenkiPalette.muted)
+                        }
                     }
                     .genkiListStyle()
                 }
@@ -38,7 +48,7 @@ struct RemindersView: View {
             .navigationTitle(String(localized: "tab_reminders"))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { showingEditor = true } label: {
+                    Button { attemptAdd() } label: {
                         Image(systemName: "plus")
                     }
                     .accessibilityLabel(String(localized: "reminders_add_a11y"))
@@ -47,6 +57,17 @@ struct RemindersView: View {
             .sheet(isPresented: $showingEditor) {
                 ReminderEditView()
             }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+            }
+        }
+    }
+
+    private func attemptAdd() {
+        if FeatureGate.canAddReminder(currentCount: reminders.count, family: family) {
+            showingEditor = true
+        } else {
+            showPaywall = true
         }
     }
 
@@ -71,7 +92,7 @@ struct RemindersView: View {
                 .font(GenkiFont.callout())
                 .foregroundStyle(GenkiPalette.muted)
                 .multilineTextAlignment(.center)
-            Button(String(localized: "reminders_add_button")) { showingEditor = true }
+            Button(String(localized: "reminders_add_button")) { attemptAdd() }
                 .buttonStyle(.genkiPrimary)
                 .frame(maxWidth: 220)
         }

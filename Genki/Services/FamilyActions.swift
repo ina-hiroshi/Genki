@@ -163,7 +163,8 @@ enum FamilyActions {
             }
         let snapshot = FamilySnapshot(familyName: family.name,
                                       members: members,
-                                      upcoming: Array(upcoming))
+                                      upcoming: Array(upcoming),
+                                      hasFullAccess: EntitlementStore.shared.hasFullAccess(for: family))
         GenkiSharedStore().save(snapshot)
         PhoneSessionManager.shared.send(snapshot: snapshot)
     }

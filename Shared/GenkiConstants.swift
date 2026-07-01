@@ -14,6 +14,18 @@ public enum GenkiConstants {
 
     /// ディープリンクのスキーム。
     public static let urlScheme = "genki"
+
+    /// 買い切りフル版（App Store Connect と一致）。
+    public static let fullUnlockProductID = "com.itoguchi.Genki.unlock"
+
+    /// App Group: トライアル開始日（ISO8601 文字列）。
+    public static let trialStartDateKey = "genki.trial.startDate"
+
+    /// App Group: ウィジェット / Watch 向けフルアクセスキャッシュ。
+    public static let entitlementCacheKey = "genki.entitlement.hasFullAccess"
+
+    /// App Group: ローカル StoreKit 購入キャッシュ（FeatureGate 用）。
+    public static let localPurchaseCacheKey = "genki.entitlement.localPurchase"
 }
 
 /// 完了・チェックインに送れるリアクション（ステッカー）。
