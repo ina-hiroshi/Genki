@@ -11,4 +11,11 @@ extension View {
         scrollContentBackground(.hidden)
             .background(GenkiPalette.background)
     }
+
+    /// タブルート画面向けのナビゲーションバー設定。
+    func genkiTabNavigationStyle() -> some View {
+        navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(GenkiPalette.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+    }
 }

@@ -46,10 +46,14 @@ struct RemindersView: View {
             }
             .genkiScreenBackground()
             .navigationTitle(String(localized: "tab_reminders"))
+            .genkiTabNavigationStyle()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { attemptAdd() } label: {
                         Image(systemName: "plus")
+                            .font(.body.weight(.semibold))
+                            .imageScale(.medium)
+                            .frame(minWidth: 44, minHeight: 44)
                     }
                     .accessibilityLabel(String(localized: "reminders_add_a11y"))
                 }

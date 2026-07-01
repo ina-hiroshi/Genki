@@ -38,6 +38,7 @@ struct CheckInView: View {
             }
             .genkiScreenBackground()
             .navigationTitle(String(localized: "tab_check_in"))
+            .genkiTabNavigationStyle()
         }
     }
 }

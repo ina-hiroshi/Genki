@@ -94,6 +94,7 @@ struct FamilyView: View {
             .genkiListStyle()
             .genkiScreenBackground()
             .navigationTitle(family?.name ?? String(localized: "family"))
+            .genkiTabNavigationStyle()
             .sheet(item: $shareSheetItem) { item in
                 ActivityShareSheet(items: item.activityItems, onDismiss: { shareSheetItem = nil })
             }

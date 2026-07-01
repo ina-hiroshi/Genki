@@ -21,14 +21,17 @@ struct HomeView: View {
             }
             .genkiScreenBackground()
             .navigationTitle("Genki")
-            .navigationBarTitleDisplayMode(.inline)
+            .genkiTabNavigationStyle()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
                         SOSView()
                     } label: {
                         Image(systemName: "sos")
+                            .font(.body.weight(.semibold))
+                            .imageScale(.medium)
                             .foregroundStyle(GenkiPalette.sos)
+                            .frame(minWidth: 44, minHeight: 44)
                     }
                     .accessibilityLabel(String(localized: "home_sos_a11y"))
                 }
