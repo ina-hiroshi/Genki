@@ -16,8 +16,8 @@ settings:
     DEVELOPMENT_TEAM: NUZ8XA844N
     CODE_SIGN_STYLE: Automatic
     CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION: YES
-    MARKETING_VERSION: "1.0.29"
-    CURRENT_PROJECT_VERSION: "29"
+    MARKETING_VERSION: "1.0.30"
+    CURRENT_PROJECT_VERSION: "30"
     ENABLE_USER_SCRIPT_SANDBOXING: YES
 
 targets:
@@ -86,11 +86,8 @@ targets:
     dependencies:
       - target: GenkiWidgetExtension
         embed: true
-      # Watch アプリを iOS アプリに同梱する。
-      # watchOS シミュレータランタイムが必要:  xcodebuild -downloadPlatform watchOS
-      # 導入後に下記コメントを外して `xcodegen generate` で有効化する。
-      # - target: GenkiWatch
-      #   embed: true
+      - target: GenkiWatch
+        embed: true
 
   GenkiUITests:
     type: bundle.ui-testing
@@ -151,6 +148,9 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.itoguchi.Genki.watchkitapp
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_ENTITLEMENTS: GenkiWatch/GenkiWatch.entitlements
+    entitlements:
+      path: GenkiWatch/GenkiWatch.entitlements
     info:
       path: GenkiWatch/Info.plist
       properties:
@@ -163,6 +163,7 @@ schemes:
     build:
       targets:
         Genki: all
+        GenkiWatch: all
     run:
       config: Debug
       storeKitConfiguration: Genki/Configuration/Genki.storekit
@@ -173,6 +174,13 @@ schemes:
         - GenkiUITests
     archive:
       config: Release
+
+  GenkiWatch:
+    build:
+      targets:
+        GenkiWatch: all
+    run:
+      config: Debug
 
   GenkiUITests:
     build:

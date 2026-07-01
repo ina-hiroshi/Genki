@@ -1,23 +1,30 @@
-/* WatchHomeView */
-"watch_sent" = "보냈습니다";
-"watch_check_in_prompt" = "오늘 컨디션";
-"watch_family_today" = "오늘의 가족";
+"app_display_name" = "Genki";
 
-"genki_level_great" = "아주 좋아요";
+/* WatchHomeView */
+"watch_sent" = "전송됨";
+"watch_check_in_prompt" = "오늘 컨디션은?";
+"watch_family_today" = "가족 오늘";
+"watch_my_reminders" = "오늘의 리마인더";
+"watch_complete_button" = "완료";
+"watch_locked_title" = "풀 버전 필요";
+"watch_locked_detail" = "iPhone의 Genki에서 풀 버전을 받으세요.";
+
+/* GenkiLevel */
+"genki_level_great" = "매우 좋음";
 "genki_level_okay" = "보통";
-"genki_level_rough" = "조금 힘들어요";
+"genki_level_rough" = "조금 힘듦";
 "genki_level_great_short" = "좋음";
 "genki_level_okay_short" = "보통";
 "genki_level_rough_short" = "힘듦";
-"genki_level_great_detail" = "평소처럼";
-"genki_level_okay_detail" = "문제 없음";
-"genki_level_rough_detail" = "상태 확인";
+"genki_level_great_detail" = "평소처럼 좋음";
+"genki_level_okay_detail" = "특별한 문제 없음";
+"genki_level_rough_detail" = "상태를 봐 주세요";
 
 /* Shared */
 "family" = "가족";
 "reaction_heart" = "하트";
 "reaction_thumbs_up" = "좋아요";
-"reaction_smile" = "웃음";
+"reaction_smile" = "미소";
 "reaction_clap" = "박수";
 "reaction_star" = "별";
 
@@ -28,3 +35,4 @@
 "sample_member_sakura" = "사쿠라";
 "sample_reminder_medicine" = "약";
 "sample_reminder_walk" = "산책";
+"sample_reminder_water" = "물 마시기";

@@ -7,6 +7,8 @@ public struct FamilySnapshot: Codable, Equatable, Sendable {
     public var generatedAt: Date
     public var members: [MemberStatus]
     public var upcoming: [ReminderStatus]
+    /// 本人の未完了リマインド（Watch 完了用）。
+    public var myReminders: [ReminderStatus]
     /// フル版（トライアル中・購入済・家族 premium）なら true。ウィジェット表示用。
     public var hasFullAccess: Bool
 
@@ -14,11 +16,13 @@ public struct FamilySnapshot: Codable, Equatable, Sendable {
                 generatedAt: Date = .now,
                 members: [MemberStatus],
                 upcoming: [ReminderStatus],
+                myReminders: [ReminderStatus] = [],
                 hasFullAccess: Bool = true) {
         self.familyName = familyName
         self.generatedAt = generatedAt
         self.members = members
         self.upcoming = upcoming
+        self.myReminders = myReminders
         self.hasFullAccess = hasFullAccess
     }
 
@@ -47,11 +51,21 @@ public struct FamilySnapshot: Codable, Equatable, Sendable {
                     done: false,
                     colorIndex: 1
                 )
+            ],
+            myReminders: [
+                ReminderStatus(
+                    id: "r3",
+                    title: String(localized: "sample_reminder_water"),
+                    ownerName: String(localized: "sample_member_mom"),
+                    time: "11:00",
+                    done: false,
+                    colorIndex: 0
+                )
             ]
         )
     }
 
-    public static let empty = FamilySnapshot(familyName: "Genki", members: [], upcoming: [], hasFullAccess: false)
+    public static let empty = FamilySnapshot(familyName: "Genki", members: [], upcoming: [], myReminders: [], hasFullAccess: false)
 }
 
 public struct MemberStatus: Codable, Equatable, Identifiable, Sendable {

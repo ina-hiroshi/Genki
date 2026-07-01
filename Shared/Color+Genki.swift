@@ -26,7 +26,7 @@ public extension Color {
     }
 }
 
-#if canImport(UIKit)
+#if os(iOS)
 private extension UIColor {
     convenience init(genkiHex: String) {
         let cleaned = genkiHex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
@@ -96,7 +96,7 @@ public enum GenkiPalette {
     }
 
     private static func adaptive(light: String, dark: String) -> Color {
-        #if canImport(UIKit)
+        #if os(iOS)
         Color(UIColor.genkiAdaptive(light: light, dark: dark))
         #else
         Color(hex: light)

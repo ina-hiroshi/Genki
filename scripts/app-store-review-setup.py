@@ -35,10 +35,10 @@ IAP_PRODUCT_ID = "com.itoguchi.Genki.unlock"
 DEFAULT_ENV = Path.home() / "開発/TsureBen/ios/.appstore.env"
 REVIEW_NOTES = """GENKI — App Review Notes
 
-Sign-in: No separate Genki account. The app uses the device iCloud (Apple ID) for CloudKit family sharing. Ensure iCloud is signed in on the test device.
+Sign-in: No separate Genkidayo account. The app uses the device iCloud (Apple ID) for CloudKit family sharing. Ensure iCloud is signed in on the test device.
 
 Core test flow:
-1. Launch Genki → complete onboarding → create a family (you become the owner).
+1. Launch Genkidayo → complete onboarding → create a family (you become the owner).
 2. Full access for 14 days (trial starts when the family is created).
 3. After trial: limited free tier (local check-in, SOS, and history viewing remain; family sync, invite links, widgets, and Watch require purchase).
 4. Family tab → open Paywall (“Get Full Version”) — Non-Consumable IAP ¥1,200 (com.itoguchi.Genki.unlock).

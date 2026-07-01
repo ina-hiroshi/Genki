@@ -1,4 +1,5 @@
 /* Common */
+"app_display_name" = "Genki";
 "cancel" = "Cancelar";
 "save" = "Salvar";
 "family" = "Família";
@@ -212,6 +213,7 @@
 "paywall_feature_widget" = "Widget da Tela de Início";
 "paywall_feature_reminders" = "Lembretes ilimitados";
 "paywall_buy_format" = "Comprar por %@";
+"paywall_screenshot_price" = "R$ 59,90";
 "paywall_loading_price" = "Carregando preço…";
 "paywall_restore" = "Restaurar compras";
 "paywall_restore_success" = "Compra restaurada.";

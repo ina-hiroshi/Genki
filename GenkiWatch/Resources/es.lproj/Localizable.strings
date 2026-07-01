@@ -1,17 +1,24 @@
+"app_display_name" = "Genki";
+
 /* WatchHomeView */
 "watch_sent" = "Enviado";
-"watch_check_in_prompt" = "¿Cómo te sientes?";
+"watch_check_in_prompt" = "¿Cómo te sientes hoy?";
 "watch_family_today" = "Familia hoy";
+"watch_my_reminders" = "Recordatorios de hoy";
+"watch_complete_button" = "Hecho";
+"watch_locked_title" = "Versión completa necesaria";
+"watch_locked_detail" = "Obtén la versión completa en iPhone.";
 
+/* GenkiLevel */
 "genki_level_great" = "Muy bien";
 "genki_level_okay" = "Normal";
 "genki_level_rough" = "Un poco mal";
 "genki_level_great_short" = "Bien";
 "genki_level_okay_short" = "Normal";
 "genki_level_rough_short" = "Mal";
-"genki_level_great_detail" = "Como siempre";
+"genki_level_great_detail" = "Como siempre, bien";
 "genki_level_okay_detail" = "Sin problemas";
-"genki_level_rough_detail" = "Revisa cómo estoy";
+"genki_level_rough_detail" = "Por favor, contáctame";
 
 /* Shared */
 "family" = "Familia";
@@ -28,3 +35,4 @@
 "sample_member_sakura" = "Sakura";
 "sample_reminder_medicine" = "Medicación";
 "sample_reminder_walk" = "Paseo";
+"sample_reminder_water" = "Beber agua";

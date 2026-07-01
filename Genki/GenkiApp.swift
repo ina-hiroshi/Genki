@@ -16,11 +16,17 @@ struct GenkiApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .fontDesign(.rounded)
-                .tint(GenkiPalette.primary)
-                .accessibilityIdentifier(bootstrapState.accessibilityID)
-                .task { await bootstrap() }
+            Group {
+                if let screen = AppStoreScreenshotLaunch.current {
+                    AppStoreScreenshotHostView(screen: screen)
+                } else {
+                    RootView()
+                        .accessibilityIdentifier(bootstrapState.accessibilityID)
+                }
+            }
+            .fontDesign(.rounded)
+            .tint(GenkiPalette.primary)
+            .task { await bootstrap() }
         }
         .modelContainer(container)
     }
@@ -30,6 +36,13 @@ struct GenkiApp: App {
     private func bootstrap() async {
         #if DEBUG
         seedIfRequested()
+        if AppStoreScreenshotLaunch.isCaptureMode {
+            PhoneSessionManager.shared.configure(container: container)
+            await PurchaseManager.shared.start()
+            await EntitlementStore.shared.refresh(in: container.mainContext)
+            FamilyActions.rebuildSnapshot(in: container.mainContext)
+            return
+        }
         await bootstrapShareIfRequested()
         #endif
         PhoneSessionManager.shared.configure(container: container)
@@ -41,14 +54,17 @@ struct GenkiApp: App {
     }
 
     #if DEBUG
-    /// 開発時に GENKI_SEED=1 で起動するとサンプル家族を投入する（スクリーンショット/検証用）。
+    /// 開発時に GENKI_SEED=1 または App Store 撮影モードでサンプル家族を投入する。
     @MainActor
     private func seedIfRequested() {
-        guard ProcessInfo.processInfo.environment["GENKI_SEED"] == "1" else { return }
+        let shouldSeed = ProcessInfo.processInfo.environment["GENKI_SEED"] == "1"
+            || AppStoreScreenshotLaunch.isCaptureMode
+        guard shouldSeed else { return }
         let context = container.mainContext
         let count = (try? context.fetchCount(FetchDescriptor<FamilyGroup>())) ?? 0
         guard count == 0 else { return }
         SampleData.seed(into: context)
+        TrialManager.startTrialIfNeeded()
         if let me = FamilyActions.currentMember(in: context) {
             CurrentUser.myMemberID = me.id
             CurrentUser.myName = me.name

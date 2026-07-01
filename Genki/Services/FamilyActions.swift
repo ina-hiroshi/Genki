@@ -161,9 +161,27 @@ enum FamilyActions {
                                done: reminder.isCompleted(),
                                colorIndex: reminder.owner?.colorIndex ?? 0)
             }
+        let me = currentMember(in: context)
+        let myReminders = family.sortedReminders
+            .filter { reminder in
+                guard let me else { return false }
+                return reminder.isScheduled()
+                    && !reminder.isCompleted()
+                    && reminder.owner?.id == me.id
+            }
+            .prefix(5)
+            .map { reminder in
+                ReminderStatus(id: reminder.id.uuidString,
+                               title: reminder.title,
+                               ownerName: reminder.owner?.name ?? "",
+                               time: reminder.timeText,
+                               done: false,
+                               colorIndex: reminder.owner?.colorIndex ?? 0)
+            }
         let snapshot = FamilySnapshot(familyName: family.name,
                                       members: members,
                                       upcoming: Array(upcoming),
+                                      myReminders: Array(myReminders),
                                       hasFullAccess: EntitlementStore.shared.hasFullAccess(for: family))
         GenkiSharedStore().save(snapshot)
         PhoneSessionManager.shared.send(snapshot: snapshot)

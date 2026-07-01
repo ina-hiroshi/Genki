@@ -64,6 +64,9 @@ struct PaywallView: View {
     }
 
     private var participantOrOwnerSubtitle: String {
+        if AppStoreScreenshotLaunch.isCaptureMode {
+            return String(localized: "paywall_owner_subtitle")
+        }
         if entitlements.isFamilyOwner {
             if let days = entitlements.trialDaysRemaining {
                 return String(format: String(localized: "paywall_trial_remaining_format"), days)
@@ -93,11 +96,14 @@ struct PaywallView: View {
 
     @ViewBuilder
     private var purchaseSection: some View {
-        if entitlements.hasFullAccess {
+        let showPurchaseUI = AppStoreScreenshotLaunch.isCaptureMode
+            || (!entitlements.hasFullAccess && entitlements.isFamilyOwner)
+
+        if entitlements.hasFullAccess && !AppStoreScreenshotLaunch.isCaptureMode {
             Label(String(localized: "paywall_already_unlocked"), systemImage: "checkmark.seal.fill")
                 .font(GenkiFont.headline())
                 .foregroundStyle(GenkiPalette.done)
-        } else if entitlements.isFamilyOwner {
+        } else if showPurchaseUI {
             VStack(spacing: 12) {
                 if let product = purchaseManager.product {
                     Button {
@@ -112,6 +118,13 @@ struct PaywallView: View {
                     }
                     .buttonStyle(.genkiPrimary)
                     .disabled(isPurchasing || isRestoring)
+                } else if AppStoreScreenshotLaunch.isCaptureMode {
+                    Button {} label: {
+                        Text(String(format: String(localized: "paywall_buy_format"),
+                                    String(localized: "paywall_screenshot_price")))
+                    }
+                    .buttonStyle(.genkiPrimary)
+                    .disabled(true)
                 } else {
                     ProgressView()
                     Text(String(localized: "paywall_loading_price"))

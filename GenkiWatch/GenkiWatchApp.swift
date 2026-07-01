@@ -6,9 +6,11 @@ struct GenkiWatchApp: App {
 
     var body: some Scene {
         WindowGroup {
-            WatchHomeView()
-                .environmentObject(session)
-                .tint(GenkiPalette.primary)
+            NavigationStack {
+                WatchHomeView()
+            }
+            .environmentObject(session)
+            .tint(GenkiPalette.primary)
         }
     }
 }

@@ -1,0 +1,92 @@
+{
+  "ja": [
+    {
+      "id": "01_home",
+      "output": "docs/app-store/marketing/ja/01_home_1290x2796.png"
+    },
+    {
+      "id": "02_check_in",
+      "output": "docs/app-store/marketing/ja/02_check_in_1290x2796.png"
+    },
+    {
+      "id": "03_reminders",
+      "output": "docs/app-store/marketing/ja/03_reminders_1290x2796.png"
+    },
+    {
+      "id": "04_family",
+      "output": "docs/app-store/marketing/ja/04_family_1290x2796.png"
+    }
+  ],
+  "en": [
+    {
+      "id": "01_home",
+      "output": "docs/app-store/marketing/en/01_home_1290x2796.png"
+    },
+    {
+      "id": "02_check_in",
+      "output": "docs/app-store/marketing/en/02_check_in_1290x2796.png"
+    },
+    {
+      "id": "03_reminders",
+      "output": "docs/app-store/marketing/en/03_reminders_1290x2796.png"
+    },
+    {
+      "id": "04_family",
+      "output": "docs/app-store/marketing/en/04_family_1290x2796.png"
+    }
+  ],
+  "es": [
+    {
+      "id": "01_home",
+      "output": "docs/app-store/marketing/es/01_home_1290x2796.png"
+    },
+    {
+      "id": "02_check_in",
+      "output": "docs/app-store/marketing/es/02_check_in_1290x2796.png"
+    },
+    {
+      "id": "03_reminders",
+      "output": "docs/app-store/marketing/es/03_reminders_1290x2796.png"
+    },
+    {
+      "id": "04_family",
+      "output": "docs/app-store/marketing/es/04_family_1290x2796.png"
+    }
+  ],
+  "pt-BR": [
+    {
+      "id": "01_home",
+      "output": "docs/app-store/marketing/pt-BR/01_home_1290x2796.png"
+    },
+    {
+      "id": "02_check_in",
+      "output": "docs/app-store/marketing/pt-BR/02_check_in_1290x2796.png"
+    },
+    {
+      "id": "03_reminders",
+      "output": "docs/app-store/marketing/pt-BR/03_reminders_1290x2796.png"
+    },
+    {
+      "id": "04_family",
+      "output": "docs/app-store/marketing/pt-BR/04_family_1290x2796.png"
+    }
+  ],
+  "ko": [
+    {
+      "id": "01_home",
+      "output": "docs/app-store/marketing/ko/01_home_1290x2796.png"
+    },
+    {
+      "id": "02_check_in",
+      "output": "docs/app-store/marketing/ko/02_check_in_1290x2796.png"
+    },
+    {
+      "id": "03_reminders",
+      "output": "docs/app-store/marketing/ko/03_reminders_1290x2796.png"
+    },
+    {
+      "id": "04_family",
+      "output": "docs/app-store/marketing/ko/04_family_1290x2796.png"
+    }
+  ]
+}

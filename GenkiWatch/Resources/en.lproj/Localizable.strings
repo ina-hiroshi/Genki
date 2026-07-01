@@ -1,7 +1,13 @@
+"app_display_name" = "Genkidayo";
+
 /* WatchHomeView */
 "watch_sent" = "Sent";
 "watch_check_in_prompt" = "How are you today?";
 "watch_family_today" = "Family Today";
+"watch_my_reminders" = "Today's Reminders";
+"watch_complete_button" = "Done";
+"watch_locked_title" = "Full version required";
+"watch_locked_detail" = "Get the full version on iPhone with Genkidayo.";
 
 /* GenkiLevel */
 "genki_level_great" = "Feeling great";
@@ -29,3 +35,4 @@
 "sample_member_sakura" = "Sakura";
 "sample_reminder_medicine" = "Medication";
 "sample_reminder_walk" = "Walk";
+"sample_reminder_water" = "Drink water";

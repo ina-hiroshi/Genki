@@ -1,7 +1,13 @@
+"app_display_name" = "Genki";
+
 /* WatchHomeView */
 "watch_sent" = "送りました";
 "watch_check_in_prompt" = "今日の元気度";
 "watch_family_today" = "家族の今日";
+"watch_my_reminders" = "今日のリマインド";
+"watch_complete_button" = "完了";
+"watch_locked_title" = "フル版が必要です";
+"watch_locked_detail" = "iPhone の Genki でフル版を入手してください。";
 
 /* GenkiLevel */
 "genki_level_great" = "とても元気";
@@ -29,3 +35,4 @@
 "sample_member_sakura" = "さくら";
 "sample_reminder_medicine" = "おくすり";
 "sample_reminder_walk" = "散歩";
+"sample_reminder_water" = "水分をとる";

@@ -40,7 +40,7 @@ Product ID: `com.itoguchi.Genki.unlock`（非消耗型・¥1,200）
 | 言語 | 表示名 | 説明 |
 |------|--------|------|
 | 日本語 | Genki フル版 | 全機能を永久解放。1回の購入で家族全員。 |
-| English | Genki Full Unlock | All features forever. One family purchase. |
+| English | Genkidayo Full Unlock | All features forever. One family purchase. |
 | Español | Genki versión completa | Familia, widgets y Watch. Una compra. |
 | 한국어 | Genki 풀 버전 | 가족·위젯·Watch 전 기능. 한 번 구매. |
 | Português | Genki versão completa | Família, widgets e Watch. Uma compra. |

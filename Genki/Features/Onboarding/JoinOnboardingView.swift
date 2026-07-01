@@ -56,7 +56,7 @@ struct JoinOnboardingView: View {
                 .padding(20)
             }
             .genkiScreenBackground()
-            .navigationTitle("Genki")
+            .navigationTitle(String(localized: "app_display_name"))
         }
     }
 

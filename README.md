@@ -43,15 +43,22 @@ xcodebuild build -scheme Genki \
 open Genki.xcodeproj
 ```
 
-### Apple Watch アプリの有効化
+### Apple Watch アプリ
 
-watchOS シミュレータランタイムが必要です。
+`GenkiWatch` は iOS アプリに同梱済みです（`project.yml` で embed 有効）。
+
+- 手元から体調チェックイン
+- 本人のリマインドをワンタップ完了（iPhone 経由で記録）
+- 家族の今日の状態を表示
+- App Group + WatchConnectivity で iPhone と同期
+
+watchOS シミュレータが必要な場合:
 
 ```bash
 xcodebuild -downloadPlatform watchOS
 ```
 
-導入後、`project.yml` の `Genki` ターゲットの依存にある `GenkiWatch` の `embed` のコメントを外し、`xcodegen generate` を実行してください。Watch のコードは `GenkiWatch/` に実装済みです。
+Xcode で **GenkiWatch** スキームを選び、ペアリングされた iPhone + Apple Watch シミュレータで実行してください。
 
 ## 実機 / iCloud のセットアップ（必須の手動作業）
 

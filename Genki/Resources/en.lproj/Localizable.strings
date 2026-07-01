@@ -1,4 +1,5 @@
 /* Common */
+"app_display_name" = "Genkidayo";
 "cancel" = "Cancel";
 "save" = "Save";
 "family" = "Family";
@@ -83,12 +84,12 @@
 "family_invite_section" = "Invite Family";
 "family_share_preparing" = "Preparing share…";
 "family_share_link" = "Send invite link";
-"family_invite_detail" = "Family members who receive the link can join Genki. Only invited people can see your group.";
+"family_invite_detail" = "Family members who receive the link can join Genkidayo. Only invited people can see your group.";
 "family_privacy_section" = "Privacy";
 "family_privacy_shared" = "Only reminder completions, check-ins, and reactions are shared.";
 "family_privacy_location" = "No location data. History stays free forever.";
 "family_data_section" = "Data & Account";
-"family_no_account" = "Genki does not require email or account sign-up. Your family group and history are stored on your device and iCloud when sharing.";
+"family_no_account" = "Genkidayo does not require email or account sign-up. Your family group and history are stored on your device and iCloud when sharing.";
 "family_delete_all" = "Delete All Data";
 "family_delete_confirm_title" = "Delete all data?";
 "family_delete_confirm_button" = "Delete";
@@ -96,7 +97,7 @@
 "family_share_error_simulator" = "Invite links require iCloud on a signed-in device. On the Simulator, add GENKI_ENABLE_CLOUDKIT=1 to your Xcode Run scheme.";
 "family_share_error_format" = "Failed to prepare share (v%1$@ %2$@): %3$@";
 "family_share_no_url" = "Could not get the invite link. Please try again.";
-"family_share_message_format" = "Join our Genki family group “%@”";
+"family_share_message_format" = "Join our Genkidayo family group “%@”";
 
 /* SOSView */
 "sos_emergency" = "Emergency SOS";
@@ -108,7 +109,7 @@
 "sos_title" = "SOS";
 
 /* OnboardingIntroPager */
-"onboarding_welcome_title" = "Welcome to Genki";
+"onboarding_welcome_title" = "Welcome to Genkidayo";
 "onboarding_welcome_subtitle" = "Stay connected, stay reassured";
 "onboarding_welcome_detail" = "Share daily \"I'm okay\" updates with family members who live apart.";
 "onboarding_reminders_title" = "Reminders that care";
@@ -176,14 +177,14 @@
 "error_share_not_found" = "Share link not found. Please try again.";
 
 /* CloudSharingSheet */
-"share_sheet_title" = "Genki Family Group";
+"share_sheet_title" = "Genkidayo Family Group";
 
 /* CheckInIntent */
 "intent_check_in_title" = "Report wellness";
 "intent_check_in_description" = "Send a check-in to your family with the selected wellness level.";
 "intent_prompt_check_in_title" = "Choose wellness level";
 "intent_prompt_check_in_description" = "Shows a notification to pick your wellness level. For wake-up automations.";
-"intent_no_family" = "Please create a family group in Genki first.";
+"intent_no_family" = "Please create a family group in Genkidayo first.";
 "intent_already_sent" = "You've already checked in today.";
 "intent_success_format" = "Reported \"%@\" to your family.";
 "intent_prompt_success" = "Choose your wellness level from the notification.";
@@ -201,7 +202,7 @@
 "sample_reminder_water" = "Drink water";
 
 /* Purchases / Paywall */
-"paywall_title" = "Genki Full Unlock";
+"paywall_title" = "Genkidayo Full Unlock";
 "paywall_headline" = "For your whole family, forever";
 "paywall_owner_subtitle" = "One purchase unlocks full features for everyone.";
 "paywall_trial_remaining_format" = "%lld-day trial left — family features will be limited after";
@@ -213,6 +214,7 @@
 "paywall_feature_widget" = "Home Screen widget";
 "paywall_feature_reminders" = "Unlimited reminders";
 "paywall_buy_format" = "Buy for %@";
+"paywall_screenshot_price" = "$11.99";
 "paywall_loading_price" = "Loading price…";
 "paywall_restore" = "Restore Purchases";
 "paywall_restore_success" = "Your purchase was restored.";
@@ -231,7 +233,7 @@
 "purchase_error_product_unavailable" = "Could not load the product. Try again later.";
 "purchase_error_pending" = "Purchase is pending approval.";
 "purchase_restore_not_found" = "No purchases found to restore.";
-"license_help_intro" = "Genki has no login account. Purchases and family data work differently.";
+"license_help_intro" = "Genkidayo has no login account. Purchases and family data work differently.";
 "license_help_same_apple_title" = "Same Apple ID, new iPhone";
 "license_help_same_apple_body" = "Tap Restore Purchases. Rejoin your family via the invite link or backup restore.";
 "license_help_participant_title" = "Family participants";
@@ -241,6 +243,6 @@
 "license_help_reinstall_title" = "Reinstalling the app";
 "license_help_reinstall_body" = "Owners should tap Restore Purchases. Family sharing on iCloud stays if you use the same iCloud account.";
 "widget_locked_title" = "Full version required";
-"widget_locked_detail" = "Get the full version in Genki to see your family today.";
+"widget_locked_detail" = "Get the full version in Genkidayo to see your family today.";
 "watch_locked_title" = "Full version required";
 "watch_locked_detail" = "Get the full version on iPhone.";
