@@ -29,6 +29,8 @@ Product ID: `com.itoguchi.Genki.unlock`（非消耗型・¥1,200）
 
 ## 審査提出
 
+初回審査の全体チェックリストは [`APP-STORE-REVIEW.md`](APP-STORE-REVIEW.md) を参照。
+
 1. Paywall 画面のスクリーンショットを IAP 審査用にアップロード
 2. アプリ **新バージョン** の「App 内課金」で `Genki Full Unlock` を選択してから提出
 3. 審査 Notes に: 14日トライアル → 制限 → 購入 → 復元 → 参加者端末の手順を記載
