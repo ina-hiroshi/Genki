@@ -97,7 +97,7 @@
 "family_share_error_simulator" = "Invite links require iCloud on a signed-in device. On the Simulator, add GENKI_ENABLE_CLOUDKIT=1 to your Xcode Run scheme.";
 "family_share_error_format" = "Failed to prepare share (v%1$@ %2$@): %3$@";
 "family_share_no_url" = "Could not get the invite link. Please try again.";
-"family_share_message_format" = "Join our Genkidayo family group “%@”";
+"family_share_message_format" = "Join our Genkidayo family group “%@”\n\nIf the link doesn't open the app, open it in Safari.";
 
 /* SOSView */
 "sos_emergency" = "Emergency SOS";

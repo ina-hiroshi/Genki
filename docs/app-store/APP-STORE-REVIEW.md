@@ -159,6 +159,38 @@ Connect UI で追加作業:
 
 ---
 
+## Guideline 2.3.2 — IAP プロモーション画像（却下対応）
+
+**症状**: 「プロモーション画像の文字が小さく読みにくい」
+
+IAP 審査用 Paywall スクショ（`Paywall-Review-Screenshot.png`）とは **別物** です。Connect → **App 内課金** → `Genki Full Unlock` → **プロモーション用画像**（1024×1024）を修正します。
+
+### 対応 A（プロモーションしない場合・最速）
+
+Connect でプロモーション用画像を **削除** し、IAP を再提出 → アプリ版を再提出。  
+App Store 商品ページ上で IAP を「プロモート」しないならこれで十分です。
+
+### 対応 B（プロモーションを続ける場合）
+
+1. 小さい文字ラベル（機能名など）を **載せない**（Apple もテキスト重ねを非推奨）
+2. 左下は App Store フレームでアプリアイコンが重なるため重要要素を避ける
+3. 新画像を生成:
+
+```bash
+python3 docs/app-store/generate_iap_promotional_image.py
+# → docs/app-store/GenkiFullUnlock-IAP-1024.png
+```
+
+4. Connect で画像を差し替え → IAP を **審査に提出** → アプリ版 **1.0.30 (30)** 等を再提出
+
+Connect 返信例（英語）:
+
+```text
+We replaced the In-App Purchase promotional image with a revised 1024×1024 asset that removes small text labels and uses larger visual elements only, per Guideline 2.3.2. The IAP has been resubmitted for review along with the app version.
+```
+
+---
+
 ## 審査で強調するポイント（5.1.3）
 
 - アプリは **記録・共有・リマインド**（wellness）

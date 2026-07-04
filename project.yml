@@ -16,8 +16,8 @@ settings:
     DEVELOPMENT_TEAM: NUZ8XA844N
     CODE_SIGN_STYLE: Automatic
     CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION: YES
-    MARKETING_VERSION: "1.0.30"
-    CURRENT_PROJECT_VERSION: "30"
+    MARKETING_VERSION: "1.0.31"
+    CURRENT_PROJECT_VERSION: "31"
     ENABLE_USER_SCRIPT_SANDBOXING: YES
 
 targets:
@@ -74,6 +74,8 @@ targets:
       path: Genki/Info.plist
       properties:
         CFBundleDisplayName: Genki
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
@@ -131,6 +133,8 @@ targets:
       path: GenkiWidget/Info.plist
       properties:
         CFBundleDisplayName: Genki
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
 
@@ -155,6 +159,8 @@ targets:
       path: GenkiWatch/Info.plist
       properties:
         CFBundleDisplayName: Genki
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         WKApplication: true
         WKCompanionAppBundleIdentifier: com.itoguchi.Genki
 

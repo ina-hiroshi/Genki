@@ -97,7 +97,7 @@
 "family_share_error_simulator" = "共有（招待リンク）は、iCloudを設定した端末で利用できます。シミュレーターでは Xcode の Run 設定に GENKI_ENABLE_CLOUDKIT=1 を追加してください。";
 "family_share_error_format" = "共有の準備に失敗しました (v%1$@ %2$@): %3$@";
 "family_share_no_url" = "共有リンクを取得できませんでした。もう一度お試しください。";
-"family_share_message_format" = "Genkiの「%@」に参加してください";
+"family_share_message_format" = "Genkiの「%@」に参加してください\n\nリンクをタップしても参加できない場合は、Safari で開いてください。";
 
 /* SOSView */
 "sos_emergency" = "緊急SOS";

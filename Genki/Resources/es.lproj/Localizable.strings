@@ -95,7 +95,7 @@
 "family_share_error_simulator" = "Los enlaces de invitación requieren iCloud. En el simulador, añade GENKI_ENABLE_CLOUDKIT=1 al esquema de Xcode.";
 "family_share_error_format" = "Error al preparar el enlace (v%1$@ %2$@): %3$@";
 "family_share_no_url" = "No se pudo obtener el enlace. Inténtalo de nuevo.";
-"family_share_message_format" = "Únete a nuestro grupo familiar Genki «%@»";
+"family_share_message_format" = "Únete a nuestro grupo familiar Genki «%@»\n\nSi el enlace no abre la app, ábrelo en Safari.";
 
 /* SOSView */
 "sos_emergency" = "SOS de emergencia";

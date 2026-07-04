@@ -119,6 +119,16 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         return true
     }
 
+    func application(_ application: UIApplication,
+                     configurationForConnecting connectingSceneSession: UISceneSession,
+                     options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        let config = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
+        if connectingSceneSession.role == .windowApplication {
+            config.delegateClass = GenkiSceneDelegate.self
+        }
+        return config
+    }
+
     // MARK: - リモート通知
 
     func application(_ application: UIApplication,
@@ -135,16 +145,10 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
 
     // MARK: - CloudKit 共有の受諾（招待リンクを開いたとき）
 
+    /// SwiftUI ライフサイクルでは通常呼ばれないが、UIKit 互換のフォールバックとして残す。
     func application(_ application: UIApplication,
                      userDidAcceptCloudKitShareWith cloudKitShareMetadata: CKShare.Metadata) {
-        Task { @MainActor in
-            do {
-                try await ShareController().accept(cloudKitShareMetadata)
-            } catch {
-                // 受諾失敗は次回起動時に再試行できるよう、ログのみ
-                NSLog("Genki share accept error: \(error.localizedDescription)")
-            }
-        }
+        CloudKitShareAcceptanceHandler.accept(cloudKitShareMetadata)
     }
 
     // MARK: - フォアグラウンド表示

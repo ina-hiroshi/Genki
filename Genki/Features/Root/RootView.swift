@@ -4,10 +4,11 @@ import SwiftData
 /// 起動時のルート。家族グループが未作成ならオンボーディング、あればメインタブ。
 struct RootView: View {
     @Query private var families: [FamilyGroup]
+    @State private var pendingJoinState = PendingJoinState.shared
 
     var body: some View {
         Group {
-            if ShareAcceptanceStore.hasPendingJoin {
+            if pendingJoinState.hasPendingJoin {
                 JoinOnboardingView()
             } else if families.isEmpty {
                 OnboardingView()
@@ -16,6 +17,9 @@ struct RootView: View {
             }
         }
         .tint(GenkiPalette.primary)
+        .onAppear {
+            pendingJoinState.refreshFromStore()
+        }
     }
 }
 
