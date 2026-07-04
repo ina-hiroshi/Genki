@@ -35,6 +35,7 @@ struct JoinOnboardingView: View {
                         field(title: String(localized: "field_your_name")) {
                             TextField(String(localized: "name_placeholder_father"), text: $myName)
                                 .textFieldStyle(.genki)
+                                .accessibilityIdentifier("genki-join-name-field")
                         }
                         field(title: String(localized: "field_your_color")) {
                             colorPicker
@@ -52,9 +53,11 @@ struct JoinOnboardingView: View {
                     Button(String(localized: "join_button"), action: joinFamily)
                         .buttonStyle(.genkiPrimary)
                         .disabled(myName.trimmingCharacters(in: .whitespaces).isEmpty)
+                        .accessibilityIdentifier("genki-join-submit")
                 }
                 .padding(20)
             }
+            .accessibilityIdentifier("genki-join-onboarding")
             .genkiScreenBackground()
             .navigationTitle(String(localized: "app_display_name"))
         }

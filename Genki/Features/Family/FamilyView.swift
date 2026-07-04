@@ -59,6 +59,7 @@ struct FamilyView: View {
                         }
                     }
                     .disabled(isPreparingShare || family == nil)
+                    .accessibilityIdentifier("genki-share-link-button")
                     if !FeatureGate.canInvite(family: family) {
                         Text(String(localized: "family_invite_locked"))
                             .font(GenkiFont.caption())

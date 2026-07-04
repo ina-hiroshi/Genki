@@ -116,15 +116,40 @@ final class ShareController {
                       zoneOwnerName: String,
                       in context: ModelContext) throws {
         let familyID = UUID(uuidString: rootRecordName) ?? UUID()
-        let family = FamilyGroup(id: familyID, name: familyName)
+        let trimmedName = name.trimmingCharacters(in: .whitespaces)
+        let existingFamilies = (try? context.fetch(FetchDescriptor<FamilyGroup>())) ?? []
+
+        let family: FamilyGroup
+        if let existing = existingFamilies.first(where: { $0.id == familyID }) {
+            family = existing
+        } else {
+            family = FamilyGroup(id: familyID, name: familyName)
+            context.insert(family)
+        }
+
+        family.name = familyName
         family.shareRecordName = rootRecordName
         family.cloudKitZoneName = CloudKitManager.zoneName
         family.cloudKitRootZoneOwnerName = zoneOwnerName
-        context.insert(family)
 
-        let me = Member(name: name, colorIndex: colorIndex, isMe: true)
-        me.family = family
-        context.insert(me)
+        for other in existingFamilies where other.id != familyID {
+            context.delete(other)
+        }
+
+        let me: Member
+        if let existingMe = (family.members ?? []).first(where: { $0.isMe }) {
+            me = existingMe
+            me.name = trimmedName
+            me.colorIndex = colorIndex
+        } else {
+            for member in family.members ?? [] {
+                member.isMe = false
+            }
+            me = Member(name: trimmedName, colorIndex: colorIndex, isMe: true)
+            me.family = family
+            context.insert(me)
+        }
+
         try context.save()
 
         CurrentUser.myMemberID = me.id
@@ -132,6 +157,7 @@ final class ShareController {
         CurrentUser.isOnboarded = true
         TrialManager.startTrialIfNeeded()
         ShareAcceptanceStore.clear()
+        PendingJoinState.shared.refreshFromStore()
         FamilyActions.rebuildSnapshot(in: context)
         Task { @MainActor in
             await PremiumSync.refreshPremium(from: family, in: context)

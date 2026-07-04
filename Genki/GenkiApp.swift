@@ -12,6 +12,11 @@ struct GenkiApp: App {
 
     init() {
         appDelegate.modelContainer = container
+        #if DEBUG
+        MainActor.assumeIsolated {
+            ShareTestSupport.prepareInjectedJoinTest(in: container.mainContext)
+        }
+        #endif
     }
 
     var body: some Scene {
@@ -22,6 +27,9 @@ struct GenkiApp: App {
                 } else {
                     RootView()
                         .accessibilityIdentifier(bootstrapState.accessibilityID)
+                    #if DEBUG
+                        .overlay(shareURLProbe)
+                    #endif
                 }
             }
             .fontDesign(.rounded)
@@ -99,11 +107,22 @@ struct GenkiApp: App {
         }
 
         do {
-            _ = try await ShareController().prepareShare(for: family)
+            let (share, _) = try await ShareController().prepareShare(for: family)
             try? context.save()
-            ShareBootstrapState.shared.markSuccess()
+            ShareBootstrapState.shared.markSuccess(shareURL: share.url?.absoluteString)
         } catch {
             ShareBootstrapState.shared.markFailure(GenkiCloudError.technicalDetail(for: error))
+        }
+    }
+
+    @ViewBuilder
+    private var shareURLProbe: some View {
+        if let url = bootstrapState.lastShareURL {
+            Text(url)
+                .accessibilityIdentifier("genki-share-url")
+                .opacity(0.01)
+                .frame(width: 1, height: 1)
+                .allowsHitTesting(false)
         }
     }
     #endif

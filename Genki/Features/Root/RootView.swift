@@ -3,6 +3,7 @@ import SwiftData
 
 /// 起動時のルート。家族グループが未作成ならオンボーディング、あればメインタブ。
 struct RootView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @Query private var families: [FamilyGroup]
     @State private var pendingJoinState = PendingJoinState.shared
 
@@ -19,6 +20,11 @@ struct RootView: View {
         .tint(GenkiPalette.primary)
         .onAppear {
             pendingJoinState.refreshFromStore()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                pendingJoinState.refreshFromStore()
+            }
         }
     }
 }

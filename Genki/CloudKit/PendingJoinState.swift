@@ -7,9 +7,14 @@ import Observation
 final class PendingJoinState {
     static let shared = PendingJoinState()
 
-    private(set) var hasPendingJoin: Bool = ShareAcceptanceStore.hasPendingJoin
+    private var refreshToken = 0
+
+    var hasPendingJoin: Bool {
+        _ = refreshToken
+        return ShareAcceptanceStore.hasPendingJoin
+    }
 
     func refreshFromStore() {
-        hasPendingJoin = ShareAcceptanceStore.hasPendingJoin
+        refreshToken += 1
     }
 }

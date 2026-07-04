@@ -19,8 +19,16 @@ enum FamilyActions {
     }
 
     static func currentFamily(in context: ModelContext) -> FamilyGroup? {
-        let descriptor = FetchDescriptor<FamilyGroup>()
-        return (try? context.fetch(descriptor))?.first
+        let families = (try? context.fetch(FetchDescriptor<FamilyGroup>())) ?? []
+        return activeFamily(from: families)
+    }
+
+    /// 複数家族が一時的に存在しても、共有参加先を優先して選ぶ。
+    static func activeFamily(from families: [FamilyGroup]) -> FamilyGroup? {
+        guard !families.isEmpty else { return nil }
+        let shared = families.filter { $0.shareRecordName != nil }
+        let candidates = shared.isEmpty ? families : shared
+        return candidates.max(by: { $0.createdAt < $1.createdAt })
     }
 
     // MARK: - チェックイン

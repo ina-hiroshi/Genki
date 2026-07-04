@@ -9,15 +9,23 @@ final class ShareBootstrapState {
 
     var accessibilityID = "genki-bootstrap-pending"
     var lastError: String?
+    var lastShareURL: String?
 
     func markPending() {
         accessibilityID = "genki-bootstrap-pending"
         lastError = nil
+        lastShareURL = nil
     }
 
-    func markSuccess() {
+    func markSuccess(shareURL: String? = nil) {
         accessibilityID = "genki-bootstrap-ok"
         lastError = nil
+        lastShareURL = shareURL
+        #if DEBUG
+        if let shareURL, let url = URL(string: shareURL) {
+            ShareTestSupport.storeLastShareURL(url)
+        }
+        #endif
     }
 
     func markFailure(_ message: String) {
