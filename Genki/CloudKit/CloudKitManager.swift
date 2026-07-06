@@ -7,6 +7,8 @@ final class CloudKitManager {
     static let shared = CloudKitManager()
 
     static let familyGroupRecordType = "FamilyGroup"
+    static let memberRecordType = "Member"
+    static let reminderRecordType = "Reminder"
     static let checkInRecordType = "CheckIn"
     static let completionRecordType = "CompletionLog"
     static let zoneName = "GenkiSharedZone"
@@ -193,6 +195,36 @@ final class CloudKitManager {
         guard !ids.isEmpty else { return }
         let db = database ?? privateDB
         _ = try await db.modifyRecords(saving: [], deleting: ids, savePolicy: .changedKeys, atomically: true)
+    }
+
+    /// 共有家族の CloudKit ゾーン ID。
+    func zoneID(for family: FamilyGroup) -> CKRecordZone.ID? {
+        guard family.shareRecordName != nil else { return nil }
+        let owner = family.cloudKitRootZoneOwnerName ?? zoneID.ownerName
+        let zoneName = family.cloudKitZoneName ?? Self.zoneName
+        return CKRecordZone.ID(zoneName: zoneName, ownerName: owner)
+    }
+
+    /// オーナー端末は privateDB、参加者端末は sharedDB。
+    func database(for family: FamilyGroup) -> CKDatabase {
+        guard let storedOwner = family.cloudKitRootZoneOwnerName else {
+            return privateDB
+        }
+        return storedOwner == zoneID.ownerName ? privateDB : sharedDB
+    }
+
+    /// ゾーン内の指定 record type をすべて取得する。
+    func fetchAllRecords(ofType recordType: String,
+                         in database: CKDatabase,
+                         zoneID: CKRecordZone.ID) async -> [CKRecord] {
+        let query = CKQuery(recordType: recordType, predicate: NSPredicate(value: true))
+        do {
+            let (results, _) = try await database.records(matching: query, inZoneWith: zoneID)
+            return results.compactMap { _, result in try? result.get() }
+        } catch {
+            logger.error("fetchAllRecords \(recordType, privacy: .public) error: \(error.localizedDescription, privacy: .public)")
+            return []
+        }
     }
 
     /// hierarchy share（root 単位）を取得する。

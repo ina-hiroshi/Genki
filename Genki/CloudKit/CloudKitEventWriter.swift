@@ -62,6 +62,7 @@ enum CloudKitEventWriter {
 
         for family in families where family.shareRecordName != nil {
             await PremiumSync.refreshPremium(from: family, in: context)
+            await FamilyDataSync.pullFamilyData(for: family, in: context)
             guard FeatureGate.canSyncToFamily(family: family) else { continue }
             guard let zoneID = zoneID(for: family, manager: manager) else { continue }
             let db = database(for: family, manager: manager)
@@ -102,16 +103,10 @@ enum CloudKitEventWriter {
     }
 
     private static func zoneID(for family: FamilyGroup, manager: CloudKitManager) -> CKRecordZone.ID? {
-        guard family.shareRecordName != nil else { return nil }
-        let owner = family.cloudKitRootZoneOwnerName ?? manager.zoneID.ownerName
-        let zoneName = family.cloudKitZoneName ?? manager.zoneID.zoneName
-        return CKRecordZone.ID(zoneName: zoneName, ownerName: owner)
+        manager.zoneID(for: family)
     }
 
     private static func database(for family: FamilyGroup, manager: CloudKitManager) -> CKDatabase {
-        guard let storedOwner = family.cloudKitRootZoneOwnerName else {
-            return manager.privateDB
-        }
-        return storedOwner == manager.zoneID.ownerName ? manager.privateDB : manager.sharedDB
+        manager.database(for: family)
     }
 }

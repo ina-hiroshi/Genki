@@ -187,6 +187,7 @@ struct FamilyView: View {
                 let controller = ShareController()
                 let (share, _) = try await controller.prepareShare(for: family)
                 try? context.save()
+                await FamilyDataSync.pushAllLocalData(for: family, in: context)
                 guard let url = share.url else {
                     shareError = String(localized: "family_share_no_url")
                     return

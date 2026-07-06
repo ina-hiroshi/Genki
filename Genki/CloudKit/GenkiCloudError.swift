@@ -29,6 +29,11 @@ enum GenkiCloudError: LocalizedError {
                ckError.localizedDescription.contains("cloudkit.share") {
                 lines.append("ヒント: cloudkit.share 型が Production に未デプロイです。Mac で ./scripts/bootstrap-share-via-simulator.sh を実行し、CloudKit Dashboard から Deploy Schema Changes… を実行してください（iPhone の USB 接続は不要）。")
             }
+            if ckError.code == .invalidArguments,
+               ckError.localizedDescription.contains("Member")
+                || ckError.localizedDescription.contains("Reminder") {
+                lines.append("ヒント: Member / Reminder 型が Production に未デプロイです。Development で共有リンクを1回生成（または GENKI_BOOTSTRAP_SHARE=1）してから、CloudKit Dashboard → Deploy Schema Changes… → Production を実行してください。")
+            }
             if ckError.code == .partialFailure || ckError.localizedDescription.contains("Atomic failure") {
                 lines.append("ヒント: 共有レコードの保存に失敗しています。上記の cloudkit.share デプロイ手順を先に実行してください。")
             }

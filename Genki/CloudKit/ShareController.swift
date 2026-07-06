@@ -160,6 +160,8 @@ final class ShareController {
         PendingJoinState.shared.refreshFromStore()
         FamilyActions.rebuildSnapshot(in: context)
         Task { @MainActor in
+            await FamilyDataSync.pushMember(me, family: family)
+            await FamilyDataSync.pullFamilyData(for: family, in: context)
             await PremiumSync.refreshPremium(from: family, in: context)
             await EntitlementStore.shared.refresh(in: context)
         }

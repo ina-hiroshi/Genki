@@ -33,6 +33,9 @@ struct MainTabView: View {
         .task {
             await CloudKitBootstrap.activateIfNeeded()
             await entitlements.refresh(in: context)
+            if let family = FamilyActions.currentFamily(in: context) {
+                await FamilyDataSync.pullFamilyData(for: family, in: context)
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .genkiPurchaseDidChange)) { _ in
             Task { await entitlements.refresh(in: context) }

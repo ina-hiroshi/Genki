@@ -109,6 +109,7 @@ struct GenkiApp: App {
         do {
             let (share, _) = try await ShareController().prepareShare(for: family)
             try? context.save()
+            await FamilyDataSync.pushAllLocalData(for: family, in: context)
             ShareBootstrapState.shared.markSuccess(shareURL: share.url?.absoluteString)
         } catch {
             ShareBootstrapState.shared.markFailure(GenkiCloudError.technicalDetail(for: error))

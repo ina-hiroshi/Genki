@@ -59,16 +59,10 @@ enum PremiumSync {
     }
 
     private static func zoneID(for family: FamilyGroup, manager: CloudKitManager) -> CKRecordZone.ID? {
-        guard family.shareRecordName != nil else { return nil }
-        let owner = family.cloudKitRootZoneOwnerName ?? manager.zoneID.ownerName
-        let zoneName = family.cloudKitZoneName ?? manager.zoneID.zoneName
-        return CKRecordZone.ID(zoneName: zoneName, ownerName: owner)
+        manager.zoneID(for: family)
     }
 
     private static func database(for family: FamilyGroup, manager: CloudKitManager) -> CKDatabase {
-        guard let storedOwner = family.cloudKitRootZoneOwnerName else {
-            return manager.privateDB
-        }
-        return storedOwner == manager.zoneID.ownerName ? manager.privateDB : manager.sharedDB
+        manager.database(for: family)
     }
 }

@@ -134,13 +134,21 @@ enum FamilyActions {
         try? context.save()
         NotificationManager.shared.scheduleReminder(reminder)
         rebuildSnapshot(in: context)
+        if let family, family.shareRecordName != nil {
+            Task { await FamilyDataSync.pushReminder(reminder, family: family) }
+        }
     }
 
     static func delete(reminder: Reminder, in context: ModelContext) {
+        let family = reminder.family
+        let reminderID = reminder.id
         NotificationManager.shared.cancelReminder(id: reminder.id)
         context.delete(reminder)
         try? context.save()
         rebuildSnapshot(in: context)
+        if let family, family.shareRecordName != nil {
+            Task { await FamilyDataSync.deleteReminder(id: reminderID, family: family) }
+        }
     }
 
     // MARK: - スナップショット（ウィジェット / Watch 用）
