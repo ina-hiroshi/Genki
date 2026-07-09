@@ -85,6 +85,11 @@
 "family_share_preparing" = "Preparing share…";
 "family_share_link" = "Send invite link";
 "family_invite_detail" = "Family members who receive the link can join Genkidayo. Only invited people can see your group.";
+"family_notifications_section" = "Notifications";
+"family_notifications_toggle" = "Receive notifications";
+"family_notifications_detail" = "Reminders, check-ins, completions, and reactions. SOS always comes through.";
+"family_notifications_os_denied" = "Notifications are turned off in iPhone Settings.";
+"family_notifications_open_settings" = "Allow notifications in Settings";
 "family_privacy_section" = "Privacy";
 "family_privacy_shared" = "Only reminder completions, check-ins, and reactions are shared.";
 "family_privacy_location" = "No location data. History stays free forever.";

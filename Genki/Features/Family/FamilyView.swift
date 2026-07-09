@@ -1,10 +1,13 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 /// 家族タブ: メンバー一覧と共有リンクでの招待、プライバシー説明。
 struct FamilyView: View {
     @Environment(\.modelContext) private var context
+    @Environment(\.scenePhase) private var scenePhase
     @Query private var families: [FamilyGroup]
+    @Query private var reminders: [Reminder]
     @State private var entitlements = EntitlementStore.shared
     @State private var shareError: String?
     @State private var shareSheetItem: ShareSheetItem?
@@ -13,6 +16,8 @@ struct FamilyView: View {
     @State private var showPaywall = false
     @State private var showTransferHelp = false
     @State private var restoreMessage: String?
+    @State private var notificationsEnabled = NotificationManager.shared.areAppNotificationsEnabled
+    @State private var systemNotificationsAuthorized = true
 
     private var family: FamilyGroup? { FamilyActions.activeFamily(from: families) }
 
@@ -73,6 +78,35 @@ struct FamilyView: View {
                         .foregroundStyle(GenkiPalette.muted)
                 }
 
+                Section {
+                    Toggle(isOn: $notificationsEnabled) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(String(localized: "family_notifications_toggle"))
+                                .font(GenkiFont.body())
+                            Text(String(localized: "family_notifications_detail"))
+                                .font(GenkiFont.caption())
+                                .foregroundStyle(GenkiPalette.muted)
+                        }
+                    }
+                    .tint(GenkiPalette.primary)
+                    .onChange(of: notificationsEnabled) { _, enabled in
+                        applyNotificationsEnabled(enabled)
+                    }
+
+                    if !systemNotificationsAuthorized {
+                        Text(String(localized: "family_notifications_os_denied"))
+                            .font(GenkiFont.caption())
+                            .foregroundStyle(GenkiPalette.muted)
+                        Button {
+                            openSystemNotificationSettings()
+                        } label: {
+                            Label(String(localized: "family_notifications_open_settings"), systemImage: "gear")
+                        }
+                    }
+                } header: {
+                    Text(String(localized: "family_notifications_section"))
+                }
+
                 Section(String(localized: "family_privacy_section")) {
                     Label(String(localized: "family_privacy_shared"), systemImage: "lock.shield")
                         .font(GenkiFont.caption())
@@ -116,6 +150,7 @@ struct FamilyView: View {
                 Text(String(localized: "family_delete_confirm_message"))
             }
             .task {
+                await refreshNotificationSettings()
                 await entitlements.refresh(in: context)
                 if let family, family.shareRecordName != nil {
                     await FamilyDataSync.pushAllLocalDataBestEffort(for: family, in: context)
@@ -124,7 +159,31 @@ struct FamilyView: View {
                     await FamilyDataSync.pullCompletions(for: family, in: context)
                 }
             }
+            .onChange(of: scenePhase) { _, phase in
+                guard phase == .active else { return }
+                Task { await refreshNotificationSettings() }
+            }
         }
+    }
+
+    private func refreshNotificationSettings() async {
+        await NotificationManager.shared.refreshAuthorizationStatus()
+        notificationsEnabled = NotificationManager.shared.areAppNotificationsEnabled
+        systemNotificationsAuthorized = NotificationManager.shared.isSystemAuthorized
+    }
+
+    private func applyNotificationsEnabled(_ enabled: Bool) {
+        NotificationManager.shared.areAppNotificationsEnabled = enabled
+        if enabled {
+            for reminder in reminders {
+                NotificationManager.shared.scheduleReminder(reminder)
+            }
+        }
+    }
+
+    private func openSystemNotificationSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
     }
 
     @ViewBuilder

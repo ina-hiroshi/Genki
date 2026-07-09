@@ -85,6 +85,11 @@
 "family_share_preparing" = "共有を準備中…";
 "family_share_link" = "共有リンクを送る";
 "family_invite_detail" = "リンクを受け取った家族がGenkiに参加できます。招待した人だけが見られます。";
+"family_notifications_section" = "通知";
+"family_notifications_toggle" = "通知を受け取る";
+"family_notifications_detail" = "リマインド・チェックイン・完了・リアクションの通知です。SOSは常に届きます。";
+"family_notifications_os_denied" = "iPhoneの設定で通知がオフになっています。";
+"family_notifications_open_settings" = "設定アプリで通知を許可";
 "family_privacy_section" = "プライバシー";
 "family_privacy_shared" = "共有されるのは、リマインドの完了・チェックイン・リアクションだけです。";
 "family_privacy_location" = "位置情報は使いません。履歴はずっと無料で見られます。";

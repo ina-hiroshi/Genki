@@ -26,6 +26,9 @@ public enum GenkiConstants {
 
     /// App Group: ローカル StoreKit 購入キャッシュ（FeatureGate 用）。
     public static let localPurchaseCacheKey = "genki.entitlement.localPurchase"
+
+    /// App Group: アプリ内の通知マスタースイッチ（SOS は常に配信）。
+    public static let notificationsEnabledKey = "genki.notifications.enabled"
 }
 
 /// 完了・チェックインに送れるリアクション（ステッカー）。

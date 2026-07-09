@@ -83,6 +83,11 @@
 "family_share_preparing" = "Preparando link…";
 "family_share_link" = "Enviar link de convite";
 "family_invite_detail" = "Quem receber o link pode entrar no Genki. Só convidados veem o grupo.";
+"family_notifications_section" = "Notificações";
+"family_notifications_toggle" = "Receber notificações";
+"family_notifications_detail" = "Lembretes, check-ins, conclusões e reações. O SOS sempre chega.";
+"family_notifications_os_denied" = "As notificações estão desativadas nos Ajustes do iPhone.";
+"family_notifications_open_settings" = "Permitir notificações nos Ajustes";
 "family_privacy_section" = "Privacidade";
 "family_privacy_shared" = "Só conclusões, check-ins e reações são compartilhados.";
 "family_privacy_location" = "Sem localização. O histórico é grátis para sempre.";
