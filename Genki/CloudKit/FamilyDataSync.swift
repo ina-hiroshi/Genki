@@ -177,13 +177,140 @@ enum FamilyDataSync {
                let ownerID = UUID(uuidString: ownerIDString) {
                 reminder.owner = memberByID[ownerID]
             }
+            NotificationManager.shared.scheduleReminder(reminder)
         }
 
         try? context.save()
         FamilyActions.rebuildSnapshot(in: context)
     }
 
+    /// 今日のチェックイン状態を共有ゾーンから取り込み、ホーム UI に反映する。
+    @MainActor
+    static func pullCheckIns(for family: FamilyGroup, in context: ModelContext) async {
+        guard canSync(family) else { return }
+        let manager = CloudKitManager.shared
+        guard let zoneID = manager.zoneID(for: family) else { return }
+        let db = manager.database(for: family)
+        let records = await manager.fetchAllRecords(
+            ofType: CloudKitManager.checkInRecordType,
+            in: db,
+            zoneID: zoneID
+        )
+
+        let calendar = Calendar.current
+        let today = Date.now
+        var didChange = false
+
+        for record in records {
+            guard let date = record["date"] as? Date,
+                  calendar.isDate(date, inSameDayAs: today) else { continue }
+
+            let member = resolveMember(from: record, family: family, in: context)
+            guard let member else { continue }
+
+            let level = intValue(record["level"]) ?? GenkiLevel.okay.rawValue
+            let note = record["note"] as? String
+
+            if let existing = member.todaysCheckIn(on: today, calendar: calendar) {
+                if existing.level != level || existing.note != note || existing.date != date {
+                    existing.level = level
+                    existing.note = note
+                    existing.date = date
+                    didChange = true
+                }
+            } else {
+                let checkIn = CheckIn(date: date, level: level, note: note, member: member)
+                context.insert(checkIn)
+                didChange = true
+            }
+        }
+
+        if didChange {
+            try? context.save()
+            FamilyActions.rebuildSnapshot(in: context)
+        }
+    }
+
+    /// 今日のリマインド完了状態を共有ゾーンから取り込む。
+    @MainActor
+    static func pullCompletions(for family: FamilyGroup, in context: ModelContext) async {
+        guard canSync(family) else { return }
+        let manager = CloudKitManager.shared
+        guard let zoneID = manager.zoneID(for: family) else { return }
+        let db = manager.database(for: family)
+        let records = await manager.fetchAllRecords(
+            ofType: CloudKitManager.completionRecordType,
+            in: db,
+            zoneID: zoneID
+        )
+
+        let calendar = Calendar.current
+        let today = Date.now
+        var didChange = false
+
+        for record in records {
+            guard let date = record["date"] as? Date,
+                  calendar.isDate(date, inSameDayAs: today) else { continue }
+
+            let member = resolveMember(from: record, family: family, in: context)
+            let reminder = resolveReminder(from: record, family: family, in: context)
+            guard let member, let reminder else { continue }
+
+            let alreadyDone = (reminder.completions ?? []).contains {
+                calendar.isDate($0.date, inSameDayAs: today) && $0.member?.id == member.id
+            }
+            if alreadyDone { continue }
+
+            let log = CompletionLog(date: date, reminder: reminder, member: member)
+            context.insert(log)
+            didChange = true
+        }
+
+        if didChange {
+            try? context.save()
+            FamilyActions.rebuildSnapshot(in: context)
+        }
+    }
+
     // MARK: - Helpers
+
+    @MainActor
+    private static func resolveMember(from record: CKRecord,
+                                      family: FamilyGroup,
+                                      in context: ModelContext) -> Member? {
+        if let memberIDString = record["memberID"] as? String,
+           let memberID = UUID(uuidString: memberIDString) {
+            if let existing = fetchMember(id: memberID, in: context) {
+                return existing
+            }
+            let name = record["memberName"] as? String ?? ""
+            let member = Member(id: memberID, name: name)
+            member.family = family
+            context.insert(member)
+            return member
+        }
+
+        if let name = record["memberName"] as? String,
+           let match = (family.members ?? []).first(where: { $0.name == name }) {
+            return match
+        }
+        return nil
+    }
+
+    @MainActor
+    private static func resolveReminder(from record: CKRecord,
+                                        family: FamilyGroup,
+                                        in context: ModelContext) -> Reminder? {
+        if let reminderIDString = record["reminderID"] as? String,
+           let reminderID = UUID(uuidString: reminderIDString) {
+            return fetchReminder(id: reminderID, in: context)
+                ?? (family.reminders ?? []).first(where: { $0.id == reminderID })
+        }
+        if let title = record["reminderTitle"] as? String {
+            return (family.reminders ?? []).first(where: { $0.title == title })
+        }
+        return nil
+    }
 
     @MainActor
     private static func findOrCreateMember(id: UUID, family: FamilyGroup, in context: ModelContext) -> Member {
@@ -234,5 +361,11 @@ enum FamilyDataSync {
     private static func decodeWeekdays(_ value: String?) -> [Int] {
         guard let value, !value.isEmpty else { return [] }
         return value.split(separator: ",").compactMap { Int($0) }
+    }
+
+    private static func intValue(_ value: CKRecordValueProtocol?) -> Int? {
+        if let int = value as? Int { return int }
+        if let number = value as? NSNumber { return number.intValue }
+        return nil
     }
 }

@@ -64,8 +64,9 @@ enum FamilyActions {
         if let family = member.family {
             Task {
                 await CloudKitEventWriter.publishCheckIn(
-                    memberName: member.name,
+                    member: member,
                     level: level,
+                    note: savedNote,
                     family: family
                 )
             }
@@ -91,8 +92,8 @@ enum FamilyActions {
         if let family = reminder.family ?? member.family {
             Task {
                 await CloudKitEventWriter.publishCompletion(
-                    memberName: member.name,
-                    reminderTitle: reminder.title,
+                    member: member,
+                    reminder: reminder,
                     family: family
                 )
             }

@@ -14,7 +14,7 @@ struct FamilyView: View {
     @State private var showTransferHelp = false
     @State private var restoreMessage: String?
 
-    private var family: FamilyGroup? { families.first }
+    private var family: FamilyGroup? { FamilyActions.activeFamily(from: families) }
 
     var body: some View {
         NavigationStack {
@@ -120,6 +120,8 @@ struct FamilyView: View {
                 if let family, family.shareRecordName != nil {
                     await FamilyDataSync.pushAllLocalDataBestEffort(for: family, in: context)
                     await FamilyDataSync.pullFamilyData(for: family, in: context)
+                    await FamilyDataSync.pullCheckIns(for: family, in: context)
+                    await FamilyDataSync.pullCompletions(for: family, in: context)
                 }
             }
         }

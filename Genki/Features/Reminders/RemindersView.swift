@@ -9,7 +9,7 @@ struct RemindersView: View {
     @State private var showingEditor = false
     @State private var showPaywall = false
 
-    private var family: FamilyGroup? { families.first }
+    private var family: FamilyGroup? { FamilyActions.activeFamily(from: families) }
 
     var body: some View {
         NavigationStack {

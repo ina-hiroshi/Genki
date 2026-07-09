@@ -10,6 +10,8 @@ DEFINE SCHEMA
         date            TIMESTAMP QUERYABLE,
         level           INT64 QUERYABLE,
         memberName      STRING QUERYABLE,
+        memberID        STRING QUERYABLE,
+        note            STRING,
         GRANT READ, WRITE TO "_creator",
         GRANT CREATE TO "_icloud"
     );
@@ -23,7 +25,9 @@ DEFINE SCHEMA
         "___recordID"   REFERENCE QUERYABLE,
         date            TIMESTAMP QUERYABLE,
         memberName      STRING QUERYABLE,
+        memberID        STRING QUERYABLE,
         reminderTitle   STRING,
+        reminderID      STRING QUERYABLE,
         GRANT READ, WRITE TO "_creator",
         GRANT CREATE TO "_icloud"
     );

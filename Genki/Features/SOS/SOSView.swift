@@ -8,7 +8,7 @@ struct SOSView: View {
     @State private var isSending = false
     @State private var sent = false
 
-    private var family: FamilyGroup? { families.first }
+    private var family: FamilyGroup? { FamilyActions.activeFamily(from: families) }
     private var me: Member? { FamilyActions.currentMember(in: context) }
 
     /// 連絡チェーン: 自分以外の家族を順に。

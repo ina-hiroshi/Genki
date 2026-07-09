@@ -166,6 +166,8 @@ final class ShareController {
                 NSLog("Genki pushMember after join error: \(error.localizedDescription)")
             }
             await FamilyDataSync.pullFamilyData(for: family, in: context)
+            await FamilyDataSync.pullCheckIns(for: family, in: context)
+            await FamilyDataSync.pullCompletions(for: family, in: context)
             await PremiumSync.refreshPremium(from: family, in: context)
             await EntitlementStore.shared.refresh(in: context)
         }

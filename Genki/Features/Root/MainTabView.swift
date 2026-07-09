@@ -51,6 +51,8 @@ struct MainTabView: View {
         guard let family = FamilyActions.currentFamily(in: context),
               family.shareRecordName != nil else { return }
         await FamilyDataSync.pullFamilyData(for: family, in: context)
+        await FamilyDataSync.pullCheckIns(for: family, in: context)
+        await FamilyDataSync.pullCompletions(for: family, in: context)
     }
 }
 

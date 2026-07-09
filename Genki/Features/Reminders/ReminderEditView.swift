@@ -113,7 +113,7 @@ struct ReminderEditView: View {
     }
 
     private func save() {
-        let family = families.first
+        let family = FamilyActions.activeFamily(from: families)
         let existingCount = (try? context.fetchCount(FetchDescriptor<Reminder>())) ?? 0
         guard FeatureGate.canAddReminder(currentCount: existingCount, family: family) else {
             limitError = String(format: String(localized: "reminders_limit_reached_format"),
@@ -131,7 +131,7 @@ struct ReminderEditView: View {
             minute: comps.minute ?? 0,
             weekdays: selectedWeekdays.sorted(),
             owner: owner,
-            family: families.first,
+            family: family,
             in: context
         )
         dismiss()

@@ -6,7 +6,7 @@ struct HomeView: View {
     @Environment(\.modelContext) private var context
     @Query private var families: [FamilyGroup]
 
-    private var family: FamilyGroup? { families.first }
+    private var family: FamilyGroup? { FamilyActions.activeFamily(from: families) }
 
     var body: some View {
         NavigationStack {
