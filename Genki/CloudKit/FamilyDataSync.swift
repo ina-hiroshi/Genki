@@ -13,7 +13,7 @@ enum FamilyDataSync {
 
     // MARK: - Push
 
-    static func pushMember(_ member: Member, family: FamilyGroup) async {
+    static func pushMember(_ member: Member, family: FamilyGroup) async throws {
         guard canSync(family) else { return }
         let manager = CloudKitManager.shared
         guard let zoneID = manager.zoneID(for: family) else { return }
@@ -30,14 +30,10 @@ enum FamilyDataSync {
         record["colorIndex"] = member.colorIndex as CKRecordValue
         record["joinedAt"] = member.joinedAt as CKRecordValue
 
-        do {
-            _ = try await manager.saveRecords([record], in: db)
-        } catch {
-            logger.error("pushMember error: \(error.localizedDescription, privacy: .public)")
-        }
+        _ = try await manager.saveRecords([record], in: db)
     }
 
-    static func pushReminder(_ reminder: Reminder, family: FamilyGroup) async {
+    static func pushReminder(_ reminder: Reminder, family: FamilyGroup) async throws {
         guard canSync(family) else { return }
         let manager = CloudKitManager.shared
         guard let zoneID = manager.zoneID(for: family) else { return }
@@ -63,11 +59,7 @@ enum FamilyDataSync {
             record["ownerID"] = ownerID.uuidString as CKRecordValue
         }
 
-        do {
-            _ = try await manager.saveRecords([record], in: db)
-        } catch {
-            logger.error("pushReminder error: \(error.localizedDescription, privacy: .public)")
-        }
+        _ = try await manager.saveRecords([record], in: db)
     }
 
     static func deleteMember(id: UUID, family: FamilyGroup) async {
@@ -97,13 +89,23 @@ enum FamilyDataSync {
     }
 
     @MainActor
-    static func pushAllLocalData(for family: FamilyGroup, in context: ModelContext) async {
+    static func pushAllLocalData(for family: FamilyGroup, in context: ModelContext) async throws {
         guard canSync(family) else { return }
         for member in family.sortedMembers {
-            await pushMember(member, family: family)
+            try await pushMember(member, family: family)
         }
         for reminder in family.sortedReminders {
-            await pushReminder(reminder, family: family)
+            try await pushReminder(reminder, family: family)
+        }
+    }
+
+    /// 失敗しても続行する再同期（家族タブ表示時など）。
+    @MainActor
+    static func pushAllLocalDataBestEffort(for family: FamilyGroup, in context: ModelContext) async {
+        do {
+            try await pushAllLocalData(for: family, in: context)
+        } catch {
+            logger.error("pushAllLocalDataBestEffort error: \(error.localizedDescription, privacy: .public)")
         }
     }
 

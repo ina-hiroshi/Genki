@@ -1,19 +1,5 @@
 DEFINE SCHEMA
 
-    RECORD TYPE FamilyGroup (
-        "___createTime" TIMESTAMP,
-        "___createdBy"  REFERENCE,
-        "___etag"       STRING,
-        "___modTime"    TIMESTAMP,
-        "___modifiedBy" REFERENCE,
-        "___recordID"   REFERENCE QUERYABLE,
-        name                STRING QUERYABLE,
-        premiumUnlockedAt   TIMESTAMP QUERYABLE,
-        GRANT WRITE TO "_creator",
-        GRANT CREATE TO "_icloud",
-        GRANT READ TO "_creator"
-    );
-
     RECORD TYPE CheckIn (
         "___createTime" TIMESTAMP,
         "___createdBy"  REFERENCE,
@@ -21,12 +7,11 @@ DEFINE SCHEMA
         "___modTime"    TIMESTAMP,
         "___modifiedBy" REFERENCE,
         "___recordID"   REFERENCE QUERYABLE,
-        memberName      STRING QUERYABLE,
         date            TIMESTAMP QUERYABLE,
         level           INT64 QUERYABLE,
-        GRANT WRITE TO "_creator",
-        GRANT CREATE TO "_icloud",
-        GRANT READ TO "_creator"
+        memberName      STRING QUERYABLE,
+        GRANT READ, WRITE TO "_creator",
+        GRANT CREATE TO "_icloud"
     );
 
     RECORD TYPE CompletionLog (
@@ -36,12 +21,24 @@ DEFINE SCHEMA
         "___modTime"    TIMESTAMP,
         "___modifiedBy" REFERENCE,
         "___recordID"   REFERENCE QUERYABLE,
+        date            TIMESTAMP QUERYABLE,
         memberName      STRING QUERYABLE,
         reminderTitle   STRING,
-        date            TIMESTAMP QUERYABLE,
-        GRANT WRITE TO "_creator",
-        GRANT CREATE TO "_icloud",
-        GRANT READ TO "_creator"
+        GRANT READ, WRITE TO "_creator",
+        GRANT CREATE TO "_icloud"
+    );
+
+    RECORD TYPE FamilyGroup (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        name            STRING QUERYABLE,
+        premiumUnlockedAt TIMESTAMP QUERYABLE,
+        GRANT READ, WRITE TO "_creator",
+        GRANT CREATE TO "_icloud"
     );
 
     RECORD TYPE Member (
@@ -54,9 +51,8 @@ DEFINE SCHEMA
         name            STRING QUERYABLE,
         colorIndex      INT64,
         joinedAt        TIMESTAMP QUERYABLE,
-        GRANT WRITE TO "_creator",
-        GRANT CREATE TO "_icloud",
-        GRANT READ TO "_creator"
+        GRANT READ, WRITE TO "_creator",
+        GRANT CREATE TO "_icloud"
     );
 
     RECORD TYPE Reminder (
@@ -74,7 +70,33 @@ DEFINE SCHEMA
         oneTimeDate     TIMESTAMP,
         createdAt       TIMESTAMP QUERYABLE,
         ownerID         STRING QUERYABLE,
+        GRANT READ, WRITE TO "_creator",
+        GRANT CREATE TO "_icloud"
+    );
+
+    RECORD TYPE Users (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE,
+        roles           LIST<INT64>,
+        GRANT WRITE TO "_creator",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE "cloudkit.share" (
+        "___createTime"               TIMESTAMP,
+        "___createdBy"                REFERENCE,
+        "___etag"                     STRING,
+        "___modTime"                  TIMESTAMP,
+        "___modifiedBy"               REFERENCE,
+        "___recordID"                 REFERENCE,
+        "cloudkit.thumbnailImageData" BYTES,
+        "cloudkit.title"              STRING,
+        "cloudkit.type"               STRING,
         GRANT WRITE TO "_creator",
         GRANT CREATE TO "_icloud",
-        GRANT READ TO "_creator"
+        GRANT READ TO "_world"
     );

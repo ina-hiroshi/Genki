@@ -115,7 +115,13 @@ struct FamilyView: View {
             } message: {
                 Text(String(localized: "family_delete_confirm_message"))
             }
-            .task { await entitlements.refresh(in: context) }
+            .task {
+                await entitlements.refresh(in: context)
+                if let family, family.shareRecordName != nil {
+                    await FamilyDataSync.pushAllLocalDataBestEffort(for: family, in: context)
+                    await FamilyDataSync.pullFamilyData(for: family, in: context)
+                }
+            }
         }
     }
 
@@ -187,7 +193,12 @@ struct FamilyView: View {
                 let controller = ShareController()
                 let (share, _) = try await controller.prepareShare(for: family)
                 try? context.save()
-                await FamilyDataSync.pushAllLocalData(for: family, in: context)
+                do {
+                    try await FamilyDataSync.pushAllLocalData(for: family, in: context)
+                } catch {
+                    shareError = GenkiCloudError.friendlyMessage(for: error)
+                    return
+                }
                 guard let url = share.url else {
                     shareError = String(localized: "family_share_no_url")
                     return

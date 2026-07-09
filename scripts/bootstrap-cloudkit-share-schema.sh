@@ -34,14 +34,22 @@ DEV_SCHEMA="$(check_schema development)"
 PROD_SCHEMA="$(check_schema production)"
 
 echo "→ カスタム型 (Development / Production)"
-for TYPE in FamilyGroup CheckIn CompletionLog; do
+MISSING_PROD=0
+for TYPE in FamilyGroup CheckIn CompletionLog Member Reminder; do
   dev_ok="❌"; prod_ok="❌"
   echo "$DEV_SCHEMA" | grep -q "RECORD TYPE ${TYPE}" && dev_ok="✅"
   echo "$PROD_SCHEMA" | grep -q "RECORD TYPE ${TYPE}" && prod_ok="✅"
   echo "   ${TYPE}: Dev ${dev_ok}  Prod ${prod_ok}"
+  if [[ "$prod_ok" != "✅" ]]; then
+    MISSING_PROD=1
+  fi
 done
 
 echo ""
+if [[ "$MISSING_PROD" -eq 1 ]]; then
+  echo "⚠️  Production に未デプロイの型があります。TestFlight では同期できません。"
+  echo "   Dashboard → Deploy Schema Changes… → Production を実行してください。"
+fi
 if diff <(echo "$DEV_SCHEMA") <(echo "$PROD_SCHEMA") >/dev/null 2>&1; then
   echo "→ Dev / Prod スキーマ: 同一（カスタム型のみ）"
 else

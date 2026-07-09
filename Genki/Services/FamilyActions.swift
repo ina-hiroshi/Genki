@@ -135,7 +135,13 @@ enum FamilyActions {
         NotificationManager.shared.scheduleReminder(reminder)
         rebuildSnapshot(in: context)
         if let family, family.shareRecordName != nil {
-            Task { await FamilyDataSync.pushReminder(reminder, family: family) }
+            Task {
+                do {
+                    try await FamilyDataSync.pushReminder(reminder, family: family)
+                } catch {
+                    // ローカル保存は成功済み。次回家族タブ表示時に再同期する。
+                }
+            }
         }
     }
 
